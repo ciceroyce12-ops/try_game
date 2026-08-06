@@ -286,6 +286,8 @@
                 youDie: "YOU DIE",
                 phase2Title: "⚠️ PHASE 2: WEAPON THROWN BY CROWD! ⚠️",
                 phase2Desc: "Boss catches the second weapon & enrages!",
+                bossApproaching: "⚠️ ARENA CHAMPION APPROACHING ⚠️",
+                getReady: "GET READY TO FIGHT!",
                 desktopControls: "⌨️ <b>Controls:</b> Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>",
                 jumpBtn: "JUMP",
                 dodgeBtn: "DODGE",
@@ -351,6 +353,8 @@
                 youDie: "ANDA MATI",
                 phase2Title: "⚠️ PHASE 2: SENJATA LEMPARAN PENONTON! ⚠️",
                 phase2Desc: "Boss nangkep senjata kedua dan ngamuk!",
+                bossApproaching: "⚠️ CHAMPION ARENA MEMASUKI ARENA ⚠️",
+                getReady: "BERSIAPLAH UNTUK BERTARUNG!",
                 desktopControls: "⌨️ <b>Kontrol:</b> Gerak: <b>A / D</b> atau <b>Arrow Keys</b> | Lompat: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Serang: <b>J / Enter</b>",
                 jumpBtn: "JUMP",
                 dodgeBtn: "DODGE",
@@ -455,6 +459,7 @@
         let gameState = 'START'; 
         let winDelayTimer = 0;
         let cutsceneTimer = 0;
+        let bossIntroTimer = 0;
         let deathAnimTimer = 0;
         let bossDeathAnimTimer = 0;
         let crowdTimer = 0;
@@ -585,9 +590,18 @@
             }
         }
 
+        function triggerBossIntro() {
+            gameState = 'BOSS_INTRO';
+            bossIntroTimer = 240; // Exactly 4 seconds at 60 FPS
+            boss.hp = boss.maxHp;
+            boss.rotation = 0;
+            boss.vx = 0;
+            boss.vy = 0;
+        }
+
         function startGame() {
             overlayScreen.style.display = "none";
-            gameState = 'PLAYING';
+            triggerBossIntro();
         }
 
         function triggerJump() {
@@ -742,7 +756,7 @@
             playerTrail = [];
             particles = [];
             lvlDisplay.innerText = stats.level;
-            gameState = 'PLAYING';
+            triggerBossIntro();
         }
 
         function triggerDeathSequence() {
@@ -812,7 +826,7 @@
 
             player.comboCount = 0;
             comboDisplay.innerText = player.comboCount;
-            gameState = 'PLAYING';
+            triggerBossIntro();
         }
 
         function applyPhysics(entity) {
@@ -844,6 +858,107 @@
             });
         }
 
+        function updateBossIntroAnim(bIndex, p) {
+            boss.hp = boss.maxHp;
+            // 10 Unique Introductions (4s Duration)
+            switch(bIndex) {
+                case 0: // Valen - Sky Drop & Crater Impact
+                    if (p < 0.6) {
+                        boss.x = 650;
+                        boss.y = -100 + (groundLevel - boss.height + 100) * (p / 0.6);
+                    } else {
+                        boss.x = 650;
+                        boss.y = groundLevel - boss.height;
+                        if (bossIntroTimer === 96) { // Impact moment at p=0.6
+                            shakeTimer = 18;
+                            spawnParticles(boss.x + boss.width/2, groundLevel, 'dust', 30);
+                            spawnParticles(boss.x + boss.width/2, groundLevel, 'spark', 15);
+                        }
+                    }
+                    break;
+                case 1: // Gideon - Whirlwind Spin Teleport
+                    if (p < 0.5) {
+                        boss.x = 400 + Math.sin(p * Math.PI * 6) * 150;
+                        boss.y = groundLevel - boss.height;
+                        boss.rotation = p * Math.PI * 12;
+                        if (Math.random() < 0.6) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'spark', 4);
+                    } else {
+                        boss.x = 650;
+                        boss.y = groundLevel - boss.height;
+                        boss.rotation = 0;
+                    }
+                    break;
+                case 2: // Korg - Earthshaking Stomp Roar
+                    boss.x = 650;
+                    boss.y = groundLevel - boss.height;
+                    if (bossIntroTimer % 35 === 0) {
+                        shakeTimer = 12;
+                        spawnParticles(boss.x + boss.width/2, groundLevel, 'dust', 18);
+                    }
+                    break;
+                case 3: // Lady Isolda - Slow Shadowy Stride
+                    boss.x = 830 - (p * 180);
+                    boss.y = groundLevel - boss.height;
+                    if (Math.random() < 0.5) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'blood', 3);
+                    break;
+                case 4: // Malakor - High Arc Somersault Leap
+                    if (p < 0.7) {
+                        let pNorm = p / 0.7;
+                        boss.x = 850 - pNorm * 200;
+                        boss.y = (groundLevel - boss.height) - Math.sin(pNorm * Math.PI) * 170;
+                        boss.rotation = pNorm * Math.PI * 6;
+                    } else {
+                        boss.x = 650;
+                        boss.y = groundLevel - boss.height;
+                        boss.rotation = 0;
+                        if (bossIntroTimer === 72) {
+                            shakeTimer = 15;
+                            spawnParticles(boss.x + boss.width/2, groundLevel, 'dust', 25);
+                        }
+                    }
+                    break;
+                case 5: // Drakul - Volcanic Eruption from Ground
+                    if (p < 0.3) {
+                        boss.x = 650;
+                        boss.y = groundLevel + 100;
+                    } else if (p < 0.6) {
+                        let pNorm = (p - 0.3) / 0.3;
+                        boss.x = 650;
+                        boss.y = (groundLevel + 100) - pNorm * (100 + boss.height);
+                        spawnParticles(boss.x + boss.width/2, groundLevel, 'spark', 8);
+                        if (bossIntroTimer % 4 === 0) shakeTimer = 6;
+                    } else {
+                        boss.x = 650;
+                        boss.y = groundLevel - boss.height;
+                    }
+                    break;
+                case 6: // Varis - Descending Gate Barrier
+                    boss.x = 650;
+                    boss.y = -80 + p * (groundLevel - boss.height + 80);
+                    if (Math.random() < 0.7) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'spark', 5);
+                    break;
+                case 7: // Morvath - Blade Gathering Hover
+                    boss.x = 650;
+                    boss.y = (groundLevel - boss.height - 35) + Math.sin(p * Math.PI * 4) * 12;
+                    if (Math.random() < 0.6) spawnParticles(boss.x + (Math.random()-0.5)*180, boss.y + (Math.random()-0.5)*120, 'spark', 4);
+                    if (p >= 0.85) boss.y = groundLevel - boss.height;
+                    break;
+                case 8: // Valerius - Monarch Lightning Descent
+                    boss.x = 650;
+                    boss.y = -60 + p * (groundLevel - boss.height + 60);
+                    if (Math.random() < 0.5) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'sweat', 4);
+                    break;
+                case 9: // Modred - Multi-Dash Shadow Mirage
+                    if (p < 0.25) boss.x = 100 + (p / 0.25) * 550;
+                    else if (p < 0.5) boss.x = 650 - ((p - 0.25) / 0.25) * 450;
+                    else if (p < 0.75) boss.x = 200 + ((p - 0.5) / 0.25) * 450;
+                    else boss.x = 650;
+                    boss.y = groundLevel - boss.height;
+                    if (p < 0.75 && Math.random() < 0.8) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'dust', 4);
+                    break;
+            }
+        }
+
         function update() {
             if (hitStopFrames > 0) {
                 hitStopFrames--;
@@ -860,6 +975,24 @@
                 p.alpha = 1 - (p.life / p.maxLife);
                 if (p.life >= p.maxLife || p.alpha <= 0) particles.splice(index, 1);
             });
+
+            if (gameState === 'BOSS_INTRO') {
+                bossIntroTimer--;
+                let bIndex = Math.min(stats.level - 1, 9);
+                let p = 1 - (bossIntroTimer / 240); // 0.0 to 1.0 over 4 seconds
+                updateBossIntroAnim(bIndex, p);
+
+                if (bossIntroTimer <= 0) {
+                    boss.x = 650;
+                    boss.y = groundLevel - boss.height;
+                    boss.vx = 0;
+                    boss.vy = 0;
+                    boss.rotation = 0;
+                    boss.state = 'IDLE';
+                    gameState = 'PLAYING';
+                }
+                return;
+            }
 
             if (gameState === 'BOSS_DEATH_ANIMATION') {
                 bossDeathAnimTimer--;
@@ -1145,7 +1278,7 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            let isExcited = (crowdTimer > 0) || (gameState === 'WIN_DELAY' || gameState === 'WIN_PAUSE' || gameState === 'VICTORY' || gameState === 'DEATH' || gameState === 'DEATH_ANIMATION' || gameState === 'BOSS_DEATH_ANIMATION' || gameState === 'PHASE2_CUTSCENE');
+            let isExcited = (crowdTimer > 0) || (gameState === 'WIN_DELAY' || gameState === 'WIN_PAUSE' || gameState === 'VICTORY' || gameState === 'DEATH' || gameState === 'DEATH_ANIMATION' || gameState === 'BOSS_DEATH_ANIMATION' || gameState === 'PHASE2_CUTSCENE' || gameState === 'BOSS_INTRO');
             let bounceSpeed = isExcited ? 70 : 350; 
             let bounceAmplitude = isExcited ? 7 : 1.2; 
 
@@ -1285,6 +1418,40 @@
                 ctx.fillRect(bDrawX + bw, bDrawY + bh * 0.3, bw * 0.25, bh * 0.61);
             }
             ctx.restore();
+
+            // 4-SECOND BOSS INTRO CUTSCENE OVERLAY
+            if (gameState === 'BOSS_INTRO') {
+                const t = translations[currentLang];
+                let bIndex = Math.min(stats.level - 1, 9);
+                let currentBossName = bossNames[bIndex];
+                let countdownSec = Math.ceil(bossIntroTimer / 60);
+
+                // Cinematic Letterbox Black Bars
+                ctx.fillStyle = 'rgba(10, 7, 5, 0.85)';
+                ctx.fillRect(0, 0, canvas.width, 42);
+                ctx.fillRect(0, canvas.height - 42, canvas.width, 42);
+
+                // Title Overlay Box
+                ctx.fillStyle = 'rgba(18, 13, 9, 0.85)';
+                ctx.fillRect(canvas.width / 2 - 240, canvas.height / 2 - 45, 480, 85);
+                ctx.strokeStyle = '#d4af37';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(canvas.width / 2 - 240, canvas.height / 2 - 45, 480, 85);
+
+                ctx.fillStyle = '#e06c75';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${t.bossApproaching} (BOSS ${bIndex + 1}/10)`, canvas.width / 2, canvas.height / 2 - 24);
+
+                ctx.fillStyle = '#d4af37';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillText(currentBossName, canvas.width / 2, canvas.height / 2 + 2);
+
+                ctx.fillStyle = '#b89768';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(`${t.getReady} ${countdownSec}s`, canvas.width / 2, canvas.height / 2 + 26);
+                ctx.textAlign = 'left';
+            }
 
             // PHASE 2 CUTSCENE ANIMATION (2 Seconds Total / 120 Frames)
             if (gameState === 'PHASE2_CUTSCENE') {
