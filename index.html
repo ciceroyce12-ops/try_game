@@ -628,12 +628,19 @@
                 let horizontalDiff = player.x - boss.x;
 
                 if (currentPlat) {
-                    if (horizontalDiff < 0 && boss.x <= currentPlat.x + 2) {
-                        boss.vx = 0;
-                    } else if (horizontalDiff > 0 && boss.x + boss.width >= currentPlat.x + currentPlat.width - 2) {
-                        boss.x += moveSpeed;
+                    // Prevent dropping off left side; route boss toward right side to drop down
+                    if (horizontalDiff < 0) {
+                        if (boss.x <= currentPlat.x + 2) {
+                            boss.x += moveSpeed; // Route right to use the right drop-off
+                        } else {
+                            boss.x -= moveSpeed;
+                        }
                     } else {
-                        boss.x += Math.sign(horizontalDiff) * moveSpeed;
+                        if (boss.x + boss.width >= currentPlat.x + currentPlat.width - 2) {
+                            boss.x += moveSpeed; // Drop off right side
+                        } else {
+                            boss.x += moveSpeed;
+                        }
                     }
                 } else {
                     if (Math.abs(horizontalDiff) > 10) {
@@ -693,11 +700,10 @@
                     boss.vx *= 0.82;
                     if (Math.abs(boss.vx) < 0.5) {
                         boss.vx = 0;
-                        // Phase 2 Double-Strike Combo logic
                         if (boss.hasSecondWeapon && boss.comboCount < 1) {
                             boss.comboCount++;
                             boss.state = 'CHARGING';
-                            boss.telegraphTimer = 12; // extremely fast second combo strike
+                            boss.telegraphTimer = 12; 
                             boss.hasDealtDamage = false;
                         } else {
                             boss.comboCount = 0;
@@ -827,11 +833,9 @@
             ctx.fillRect(14, 20, 8, 4);
             ctx.fillRect(26, 20, 8, 4);
 
-            // Primary weapon
             ctx.fillStyle = '#21252b';
             ctx.fillRect(boss.x > player.x ? -14 : 42, 25, 14, 35);
 
-            // Second Weapon (Phase 2 Dual Wield)
             if (boss.hasSecondWeapon) {
                 ctx.fillStyle = '#e06c75';
                 ctx.fillRect(boss.x > player.x ? 46 : -22, 20, 12, 40);
