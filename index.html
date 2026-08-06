@@ -495,18 +495,8 @@
                 );
 
                 if (currentPlat && player.y > boss.y + 10) {
-                    let distToLeftEdge = boss.x - currentPlat.x;
-                    let distToRightEdge = (currentPlat.x + currentPlat.width) - (boss.x + boss.width);
-                    let targetX;
-
-                    if (player.x < currentPlat.x) {
-                        targetX = currentPlat.x - 5;
-                    } else if (player.x > currentPlat.x + currentPlat.width) {
-                        targetX = currentPlat.x + currentPlat.width + 5;
-                    } else {
-                        targetX = distToLeftEdge < distToRightEdge ? currentPlat.x - 5 : currentPlat.x + currentPlat.width + 5;
-                    }
-
+                    // Smart Drop-Down: Walk toward whichever edge is on the same side as the player
+                    let targetX = player.x < boss.x ? currentPlat.x - 5 : currentPlat.x + currentPlat.width + 5;
                     let diffToTarget = targetX - boss.x;
                     boss.x += Math.sign(diffToTarget) * moveSpeed;
                 } else {
