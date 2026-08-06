@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Tactical Balance Edition</title>
+    <title>Souls-Like Mini RPG - Fixed Damage & Level Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -75,7 +75,7 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death: Balanced Edition</h1>
+        <h1>Trial by Death: Fixed Balance Edition</h1>
         <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
@@ -140,7 +140,8 @@
             telegraphTimer: 0,
             calmTimer: 0,
             vx: 0,
-            speedMultiplier: 1.0
+            speedMultiplier: 1.0,
+            hasDealtDamage: false
         };
 
         let lasers = [];
@@ -239,13 +240,11 @@
 
         function handleDeath() {
             stats.deaths++;
-            stats.level++;
-            player.hp = player.maxHp + (stats.level * 10);
-            player.maxHp = player.hp;
+            // Level stays the same when you die (removed stats.level++)
+            player.hp = player.maxHp;
             player.x = 100;
             boss.hp = boss.maxHp;
             boss.state = 'IDLE';
-            lvlDisplay.innerText = stats.level;
             deathDisplay.innerText = stats.deaths;
             player.comboCount = 0;
             comboDisplay.innerText = player.comboCount;
@@ -340,6 +339,7 @@
                     boss.state = 'CHARGING';
                     boss.telegraphTimer = Math.max(20, 35 - stats.wins * 2);
                     boss.attackCooldown = 0;
+                    boss.hasDealtDamage = false; // Reset hit flag for the new attack
                 }
             } 
             else if (boss.state === 'CHARGING') {
@@ -354,12 +354,14 @@
                 if (player.x < boss.x + boss.width && player.x + player.width > boss.x &&
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
                     let isJumpingOver = player.y + player.height < boss.y + 25; 
-                    if (!player.isDodging && !isJumpingOver) {
+                    if (!player.isDodging && !isJumpingOver && !boss.hasDealtDamage) {
                         // Level 1 = 10 hits to die (10 damage). Each win reduces allowed hits by 1 (down to min 2 hits).
                         let allowedHits = Math.max(2, 10 - stats.wins);
                         let damageToPlayer = player.maxHp / allowedHits;
                         
                         player.hp -= damageToPlayer;
+                        boss.hasDealtDamage = true; // Ensure boss only deals damage ONCE per attack swoop
+
                         if (player.hp <= 0) {
                             handleDeath();
                         }
