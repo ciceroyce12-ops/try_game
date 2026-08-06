@@ -205,7 +205,28 @@
         let winDelayTimer = 0;
         let cutsceneTimer = 0;
         let deathAnimTimer = 0;
-        let crowdCheerTimer = 0;
+        
+        // Crowd Reaction State
+        let crowdTimer = 0;
+        let activeCrowdText = "";
+
+        const mockDialogues = [
+            "🗣️ 'HA HA HA! PATHETIC WORM!'",
+            "🗣️ 'WAKE UP OR DIE ALREADY!'",
+            "🗣️ 'THAT'S IT? MY GRANDMA FIGHTS HARDER!'",
+            "🗣️ 'ANOTHER EASY MEAL FOR THE ARENA!'",
+            "🗣️ 'BOOOOO! GET OFF THE FLOOR!'",
+            "🗣️ 'LOOK AT HIM SQUIR姆! DISGUSTING!'"
+        ];
+
+        const winDialogues = [
+            "🗣️ 'UNBELIEVABLE! A NEW CHAMPION RISES?!'",
+            "🗣️ 'BY THE GODS... THE BEAST HAS FALLEN!'",
+            "🗣️ 'WHO IS THIS ABSOLUTE LEGEND?!'",
+            "🗣️ 'GLORY TO THE NEW HERO OF THE COLOSSEUM!'",
+            "🗣️ 'I-I CANNOT BELIEVE MY EYES... HE WON?!'"
+        ];
+
         const groundLevel = 290;
         
         // 4-Tier Pyramid Platforms Setup
@@ -214,6 +235,18 @@
             { x: 260, y: 170, width: 280, height: 12 }, // 3rd Floor
             { x: 360, y: 110, width: 80, height: 12 }   // 4th Floor (Peak)
         ];
+
+        // Detailed Audience Spectators Setup (Position and appearance profiles)
+        const audienceMembers = [];
+        // Generate crowd on tiers (Left and Right spectator sections)
+        for (let x = 85; x <= 220; x += 18) {
+            audienceMembers.push({ x: x, y: 70, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
+            audienceMembers.push({ x: x + 6, y: 88, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
+        }
+        for (let x = 580; x <= 715; x += 18) {
+            audienceMembers.push({ x: x, y: 70, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
+            audienceMembers.push({ x: x + 6, y: 88, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
+        }
 
         const player = {
             x: 100,
@@ -348,6 +381,9 @@
                     boss.hp -= meleeDmg;
                     checkBossPhase2();
                     if (boss.hp <= 0 && gameState === 'PLAYING') {
+                        // Trigger Win crowd dialogue randomly
+                        activeCrowdText = winDialogues[Math.floor(Math.random() * winDialogues.length)];
+                        crowdTimer = 160;
                         gameState = 'WIN_DELAY';
                         winDelayTimer = 120;
                     }
@@ -380,7 +416,7 @@
 
             if (stats.wins >= 10) {
                 gameState = 'VICTORY';
-                overlayTitle.innerText = "YOU WIN";
+                overlayTitle.innerText = "YOU WIN - COLOSSEUM LEGEND";
                 overlayTitle.style.color = "#d4af37";
                 upgradeOptions.style.display = "none";
                 deathTutorialText.style.display = "none";
@@ -445,7 +481,8 @@
             deathAnimTimer = 110; 
             player.vy = -7; 
             player.rotation = 0;
-            crowdCheerTimer = 120; 
+            activeCrowdText = "🗣️ 'ANOTHER SOUL CLAIMED BY THE FOOLS!'";
+            crowdTimer = 140;
         }
 
         function finalizeDeathScreen() {
@@ -538,7 +575,6 @@
         function update() {
             if (gameState === 'DEATH_ANIMATION') {
                 deathAnimTimer--;
-                crowdCheerTimer = 120;
                 player.vy += player.gravity;
                 player.y += player.vy;
                 player.rotation += 0.08; 
@@ -573,8 +609,8 @@
 
             if (gameState !== 'PLAYING') return;
 
-            if (crowdCheerTimer > 0) {
-                crowdCheerTimer--;
+            if (crowdTimer > 0) {
+                crowdTimer--;
             }
 
             // Stamina regeneration when not spending it
@@ -601,6 +637,8 @@
                     checkBossPhase2();
                     lasers.splice(index, 1);
                     if (boss.hp <= 0 && gameState === 'PLAYING') {
+                        activeCrowdText = winDialogues[Math.floor(Math.random() * winDialogues.length)];
+                        crowdTimer = 160;
                         gameState = 'WIN_DELAY';
                         winDelayTimer = 120;
                     }
@@ -647,7 +685,6 @@
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 let horizontalDiff = player.x - boss.x;
 
-                // Smart Pathing: Check if boss is on a platform above the player. If so, walk toward platform edge to drop down!
                 let currentPlat = platforms.find(plat => 
                     Math.abs((boss.y + boss.height) - plat.y) < 6 && 
                     boss.x + boss.width > plat.x && 
@@ -659,7 +696,6 @@
                     let dir = player.x < platCenter ? -1 : 1;
                     boss.x += dir * moveSpeed;
                 } else {
-                    // Standard horizontal pursuit from any direction
                     if (Math.abs(horizontalDiff) > 5) {
                         boss.x += Math.sign(horizontalDiff) * moveSpeed;
                     }
@@ -707,7 +743,10 @@
                         
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
-                        crowdCheerTimer = 120;
+
+                        // Trigger Random Audience Mocking Dialogue on Hit!
+                        activeCrowdText = mockDialogues[Math.floor(Math.random() * mockDialogues.length)];
+                        crowdTimer = 140;
 
                         if (player.hp <= 0) {
                             triggerDeathSequence();
@@ -735,7 +774,7 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // --- HOLLOW KNIGHT COLOSSEUM OF FOOLS STYLE BACKGROUND ---
+            // --- BACKGROUND ---
             let bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             bgGradient.addColorStop(0, '#2b1e14');
             bgGradient.addColorStop(0.5, '#1d140e');
@@ -743,7 +782,7 @@
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Vertical Light Rays from ceiling
+            // Light Rays
             ctx.fillStyle = 'rgba(212, 175, 55, 0.04)';
             ctx.beginPath();
             ctx.moveTo(100, 0); ctx.lineTo(200, 0); ctx.lineTo(350, canvas.height); ctx.lineTo(200, canvas.height);
@@ -752,24 +791,23 @@
             ctx.moveTo(450, 0); ctx.lineTo(550, 0); ctx.lineTo(700, canvas.height); ctx.lineTo(550, canvas.height);
             ctx.fill();
 
-            // Massive Stone Pillars on Left and Right
+            // Massive Stone Pillars
             ctx.fillStyle = '#17100b';
             ctx.fillRect(0, 0, 75, canvas.height);
             ctx.fillRect(canvas.width - 75, 0, 75, canvas.height);
 
-            // Pillar Capitals / Ornate Sculptures
             ctx.fillStyle = '#2b1e14';
             ctx.fillRect(0, 30, 85, 30);
             ctx.fillRect(canvas.width - 85, 30, 85, 30);
 
-            // --- SPECTATOR TIERS (Bug Audience) ---
+            // --- SPECTATOR TIERS ---
             ctx.fillStyle = '#1f150f';
-            ctx.fillRect(75, 55, canvas.width - 150, 50);
+            ctx.fillRect(75, 55, canvas.width - 150, 55);
             ctx.strokeStyle = '#3d2b1f';
             ctx.lineWidth = 2;
-            ctx.strokeRect(75, 55, canvas.width - 150, 50);
+            ctx.strokeRect(75, 55, canvas.width - 150, 55);
 
-            // Central Ornate Statue / Crest
+            // Central Crest
             ctx.fillStyle = '#3d2b1f';
             ctx.beginPath();
             ctx.arc(canvas.width / 2, 75, 22, 0, Math.PI * 2);
@@ -778,28 +816,50 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Audience Spectators (Masked Bug Heads)
-            let bounce = (crowdCheerTimer > 0) ? Math.sin(Date.now() / 50) * 4 : 0;
-            for (let yPos = 65; yPos < 95; yPos += 14) {
-                for (let xPos = 90; xPos < canvas.width - 80; xPos += 18) {
-                    if (xPos > canvas.width / 2 - 35 && xPos < canvas.width / 2 + 25 && yPos < 80) continue;
-                    
-                    let headBounce = yPos === 65 ? bounce : -bounce;
-                    ctx.fillStyle = '#c8b090';
-                    ctx.beginPath();
-                    ctx.arc(xPos, yPos + headBounce, 6, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#543d2b';
-                    ctx.fillRect(xPos - 5, yPos + 3 + headBounce, 10, 5);
-                }
-            }
+            // --- RECOGNIZABLE BUG SPECTATORS ---
+            let globalBounce = Math.sin(Date.now() / 120) * 3;
+            audienceMembers.forEach((bug, index) => {
+                let bounce = Math.sin(Date.now() / 80 + bug.phase) * 3 + (crowdTimer > 0 ? globalBounce * 2 : 0);
+                let bx = bug.x;
+                let by = bug.y + bounce;
 
-            // Laughing / Mocking Crowd Notification during death
-            if (crowdCheerTimer > 0 && gameState === 'DEATH_ANIMATION') {
-                ctx.fillStyle = 'rgba(212, 175, 55, 0.85)';
-                ctx.font = 'bold 13px sans-serif';
+                // Bug shell / head body color variety
+                if (bug.type === 0) {
+                    ctx.fillStyle = '#c8b090'; // Horned bug
+                } else if (bug.type === 1) {
+                    ctx.fillStyle = '#9e8263'; // Masked bug
+                } else {
+                    ctx.fillStyle = '#6b5442'; // Dark armored spectator
+                }
+
+                // Head shape
+                ctx.beginPath();
+                ctx.arc(bx, by, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Distinct bug horns/antennae or eyes
+                ctx.fillStyle = '#d4af37';
+                ctx.fillRect(bx - 3, by - 10, 2, 5);
+                ctx.fillRect(bx + 1, by - 10, 2, 5);
+
+                // Glowing eyes
+                ctx.fillStyle = crowdTimer > 0 ? '#e06c75' : '#ffffff';
+                ctx.fillRect(bx - 4, by - 2, 2, 2);
+                ctx.fillRect(bx + 2, by - 2, 2, 2);
+            });
+
+            // Active Crowd Shout / Dialogue Banner
+            if (crowdTimer > 0) {
+                ctx.fillStyle = 'rgba(18, 13, 9, 0.85)';
+                ctx.fillRect(canvas.width / 2 - 200, 38, 400, 28);
+                ctx.strokeStyle = '#d4af37';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(canvas.width / 2 - 200, 38, 400, 28);
+
+                ctx.fillStyle = '#d4af37';
+                ctx.font = 'bold 12px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText("🗣️ HA HA HA! PATHETIC! 🎭", canvas.width / 2, 45 + Math.sin(Date.now() / 40) * 4);
+                ctx.fillText(activeCrowdText, canvas.width / 2, 56 + Math.sin(Date.now() / 30) * 2);
                 ctx.textAlign = 'left';
             }
 
