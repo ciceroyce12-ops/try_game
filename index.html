@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Responsive Edition</title>
+    <title>Souls-Like Mini RPG - Bilingual Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -45,7 +45,7 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            max-width: 400px; /* Default mobile portrait size */
+            max-width: 400px;
             display: flex;
             justify-content: center;
             transition: max-width 0.3s ease;
@@ -59,7 +59,7 @@
             display: block;
             border-radius: 6px;
         }
-        /* Overlay Screen (Start, Upgrades, Victory, Death) */
+        /* Overlay Screen */
         #overlay-screen {
             position: absolute;
             top: 0;
@@ -78,7 +78,7 @@
         }
         #overlay-screen h2 {
             margin: 0 0 10px 0;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             letter-spacing: 1px;
             text-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
         }
@@ -86,6 +86,26 @@
             margin: 0 0 15px 0;
             font-size: 0.95rem;
             color: #b89768;
+        }
+        .lang-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-lang {
+            background-color: #2b1d14;
+            color: #b89768;
+            border: 1px solid #543d2b;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-lang.active-lang {
+            background-color: #d4af37;
+            color: #120d09;
+            border-color: #d4af37;
         }
         .upgrade-container {
             display: none;
@@ -99,7 +119,7 @@
             color: #e0d0c0;
             border: 2px solid #d4af37;
             padding: 10px 15px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
@@ -110,7 +130,7 @@
             color: #120d09;
         }
         #death-tutorial-text {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: #c8b090;
             max-width: 320px;
             line-height: 1.3;
@@ -133,13 +153,13 @@
             font-weight: bold;
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
             display: block;
-            margin-top: 10px;
+            margin-top: 5px;
         }
         #btn-action:active {
             background-color: #b89768;
         }
         
-        /* Mobile Portrait Touch Controls */
+        /* Mobile Touch Controls */
         .controls-wrapper {
             display: flex;
             justify-content: space-between;
@@ -162,7 +182,7 @@
             color: #e0d0c0;
             border: 1px solid #453224;
             padding: 20px 0;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
@@ -175,7 +195,6 @@
         .btn-dodge { background-color: #1c2c38; border-color: #315263; }
         .btn-attack { background-color: #481d1d; border-color: #733131; }
 
-        /* Desktop Instructions Banner */
         .desktop-instructions {
             display: none;
             margin-top: 12px;
@@ -189,34 +208,21 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* PC / Desktop Responsive Media Query */
         @media (min-width: 768px) {
-            body {
-                padding: 20px;
-            }
-            h1 {
-                font-size: 1.4rem;
-            }
-            #stats {
-                font-size: 0.9rem;
-            }
-            .canvas-container {
-                max-width: 760px; /* Much larger and immersive on PC */
-            }
-            .controls-wrapper {
-                display: none; /* Hide mobile touch buttons on desktop */
-            }
-            .desktop-instructions {
-                display: block; /* Show keyboard controls on desktop */
-            }
+            body { padding: 20px; }
+            h1 { font-size: 1.4rem; }
+            #stats { font-size: 0.9rem; }
+            .canvas-container { max-width: 760px; }
+            .controls-wrapper { display: none; }
+            .desktop-instructions { display: block; }
         }
     </style>
 </head>
 <body>
 
     <div class="header-container">
-        <h1>Colosseum of Fools</h1>
-        <div id="stats">Lvl: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span>/10 | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
+        <h1 id="main-title">Colosseum of Fools</h1>
+        <div id="stats"><span id="lbl-lvl">Lvl</span>: <span id="lvl-display">1</span> | <span id="lbl-wins">Wins</span>: <span id="win-display">0</span>/10 | <span id="lbl-deaths">Deaths</span>: <span id="death-display">0</span> | <span id="lbl-combo">Combo</span>: <span id="combo-display">0</span>/4</div>
     </div>
     
     <div class="canvas-container">
@@ -224,18 +230,24 @@
         <div id="overlay-screen">
             <h2 id="overlay-title" style="color: #d4af37;">Colosseum of Fools</h2>
             <p id="overlay-desc">Enter the arena and survive the champion trials.</p>
+            
+            <div id="lang-selector" class="lang-selector">
+                <button class="btn-lang active-lang" id="btn-lang-en" onclick="switchLanguage('en')">English</button>
+                <button class="btn-lang" id="btn-lang-id" onclick="switchLanguage('id')">Indonesia</button>
+            </div>
+
             <div id="upgrade-options" class="upgrade-container">
-                <button class="btn-upgrade" id="btn-dmg-up">⚔️ UPGRADE DAMAGE (+50%)</button>
-                <button class="btn-upgrade" id="btn-hp-up">🛡️ UPGRADE HEALTH (+50 HP & Heal)</button>
-                <button class="btn-upgrade" id="btn-stamina-up">⚡ UPGRADE STAMINA (+15 & Refill)</button>
+                <button class="btn-upgrade" id="btn-dmg-up" onclick="applyUpgrade('damage')">⚔️ UPGRADE DAMAGE (+50%)</button>
+                <button class="btn-upgrade" id="btn-hp-up" onclick="applyUpgrade('health')">🛡️ UPGRADE HEALTH (+50 HP & Heal)</button>
+                <button class="btn-upgrade" id="btn-stamina-up" onclick="applyUpgrade('stamina')">⚡ UPGRADE STAMINA (+15 & Refill)</button>
             </div>
             <div id="death-tutorial-text"></div>
-            <button id="btn-action">START GAME</button>
+            <button id="btn-action" onclick="handleActionButton()">START GAME</button>
             <p id="overlay-credit" style="margin-top: 15px; font-size: 0.85rem; color: #8a6f52;">made by Ciceroyce</p>
         </div>
     </div>
 
-    <!-- Mobile Portrait Touch Controls -->
+    <!-- Mobile Touch Controls -->
     <div class="controls-wrapper">
         <div class="control-group">
             <button id="btn-left" class="control-btn">←</button>
@@ -249,11 +261,182 @@
     </div>
 
     <!-- PC Keyboard Guide -->
-    <div class="desktop-instructions">
+    <div class="desktop-instructions" id="desktop-instructions-text">
         ⌨️ **Controls:** Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>
     </div>
 
     <script>
+        let currentLang = 'en';
+
+        const translations = {
+            en: {
+                title: "Colosseum of Fools",
+                startDesc: "Enter the arena and survive the champion trials.",
+                startBtn: "START GAME",
+                winLegend: "YOU WIN - LEGEND",
+                credit: "made by Ciceroyce",
+                lblLvl: "Lvl",
+                lblWins: "Wins",
+                lblDeaths: "Deaths",
+                lblCombo: "Combo",
+                dmgUp: "⚔️ UPGRADE DAMAGE (+50%)",
+                hpUp: "🛡️ UPGRADE HEALTH (+50 HP & Heal)",
+                staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
+                tryAgain: "TRY AGAIN?",
+                youDie: "YOU DIE",
+                phase2Title: "⚠️ PHASE 2: DUAL WEAPONS! ⚠️",
+                phase2Desc: "Boss speed & fury increased!",
+                desktopControls: "⌨️ <b>Controls:</b> Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>",
+                jumpBtn: "JUMP",
+                dodgeBtn: "DODGE",
+                hitBtn: "HIT",
+                hpText: "HP",
+                bossText: "BOSS",
+                bossP2: "BOSS P2",
+                chooseEnhancement: "Choose your enhancement:",
+                lvlBeaten: (lvl) => `Level ${lvl} Beaten!`,
+                tutorialQuotes: [
+                    "💡 <b>Pro Tip:</b> When the boss drops to 50% HP, Phase 2 awakens with dual weapons and +25% speed!",
+                    "💡 <b>Pro Tip:</b> Time your dodge roll to phase through boss charges safely.",
+                    "💡 <b>Pro Tip:</b> Land 4 consecutive hits to fire a powerful ranged laser beam!",
+                    "💡 <b>Pro Tip:</b> Watch your stamina bar! Empty stamina disables movement speed.",
+                    "💡 <b>Pro Tip:</b> Use pyramid platforms to jump over aggressive charges.",
+                    "💡 <b>Pro Tip:</b> Want to get in touch or check my projects? Visit my <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Contact Page</a>!"
+                ],
+                mockDialogues: [
+                    "🗣️ 'HA HA HA! PATHETIC WORM!'",
+                    "🗣️ 'WAKE UP OR DIE ALREADY!'",
+                    "🗣️ 'THAT'S IT? MY GRANDMA FIGHTS HARDER!'",
+                    "🗣️ 'ANOTHER EASY MEAL FOR THE ARENA!'",
+                    "🗣️ 'BOOOOO! GET OFF THE FLOOR!'",
+                    "🗣️ 'LOOK AT HIM SQUIRM! DISGUSTING!'",
+                    "🗣️ 'TAKE THAT, YOU CLOWN!'",
+                    "🗣️ 'THE FLOOR SAYS HELLO!'"
+                ],
+                winDialogues: [
+                    "🗣️ 'UNBELIEVABLE! A NEW CHAMPION RISES?!'",
+                    "🗣️ 'BY THE GODS... THE BEAST HAS FALLEN!'",
+                    "🗣️ 'WHO IS THIS ABSOLUTE LEGEND?!'",
+                    "🗣️ 'GLORY TO THE NEW HERO OF THE COLOSSEUM!'",
+                    "🗣️ 'I-I CANNOT BELIEVE MY EYES... HE WON?!'",
+                    "🗣️ 'THE KING IS DEAD! ALL HAIL THE CHAMPION!'",
+                    "🗣️ 'A GLORIOUS UPSET! INCREDIBLE!'",
+                    "🗣️ 'WE EAT LIKE KINGS TONIGHT! WHAT A FIGHT!'"
+                ],
+                loseDialogues: [
+                    "🗣️ 'ANOTHER SOUL CLAIMED BY THE FOOLS!'",
+                    "🗣️ 'FEED THE CORPSE TO THE HOUNDS!'",
+                    "🗣️ 'WELL, THAT WAS A SHORT PERFORMANCE!'",
+                    "🗣️ 'ANOTHER DISAPPOINTING SACRIFICE!'",
+                    "🗣️ 'DOWN IN THE DUST WHERE YOU BELONG!'",
+                    "🗣️ 'REST IN PIECES, FOOL!'",
+                    "🗣️ 'BOOO! WHAT A TERRIBLE FIGHTER!'",
+                    "🗣️ 'THE ARENA CLAIMS ANOTHER VICTIM!'"
+                ]
+            },
+            id: {
+                title: "Koloseum Orang Bodoh",
+                startDesc: "Masuki arena dan bertahanlah dari ujian para juara.",
+                startBtn: "MULAI PERMAINAN",
+                winLegend: "ANDA MENANG - LEGENDA",
+                credit: "dibuat oleh Ciceroyce",
+                lblLvl: "Lev",
+                lblWins: "Menang",
+                lblDeaths: "Mati",
+                lblCombo: "Kombo",
+                dmgUp: "⚔️ TINGKATKAN KERUSAKAN (+50%)",
+                hpUp: "🛡️ TINGKATKAN NYAWA (+50 HP & Pemulihan)",
+                staminaUp: "⚡ TINGKATKAN STAMINA (+15 & Pemulihan)",
+                tryAgain: "COBA LAGI?",
+                youDie: "ANDA MATI",
+                phase2Title: "⚠️ FASE 2: SENJATA GANDA! ⚠️",
+                phase2Desc: "Kecepatan & amukan bos meningkat!",
+                desktopControls: "⌨️ <b>Kontrol:</b> Gerak: <b>A / D</b> atau <b>Tombol Panah</b> | Lompat: <b>W / Atas / Spasi</b> | Menghindar: <b>Shift</b> | Serang: <b>J / Enter</b>",
+                jumpBtn: "LOMPAT",
+                dodgeBtn: "HINDAR",
+                hitBtn: "SERANG",
+                hpText: "NYAWA",
+                bossText: "BOS",
+                bossP2: "BOS P2",
+                chooseEnhancement: "Pilih peningkatan Anda:",
+                lvlBeaten: (lvl) => `Level ${lvl} Terlewati!`,
+                tutorialQuotes: [
+                    "💡 <b>Tips Pro:</b> Saat HP bos turun menjadi 50%, Fase 2 bangkit dengan senjata ganda dan +25% kecepatan!",
+                    "💡 <b>Tips Pro:</b> Waktu guliran menghindar (dodge) Anda dengan tepat untuk melewati serangan bos dengan aman.",
+                    "💡 <b>Tips Pro:</b> Daratkan 4 serangan beruntun untuk menembakkan sinar laser jarak jauh yang kuat!",
+                    "💡 <b>Tips Pro:</b> Perhatikan bar stamina Anda! Stamina habis akan melumpuhkan kecepatan gerak.",
+                    "💡 <b>Tips Pro:</b> Gunakan platform piramida untuk melompati serangan serudukan agresif.",
+                    "💡 <b>Tips Pro:</b> Ingin menghubungi atau melihat proyek saya? Kunjungi <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Halaman Kontak</a> saya!"
+                ],
+                mockDialogues: [
+                    "🗣️ 'HA HA HA! CACING MENYEDIHKAN!'",
+                    "🗣️ 'BANGUN ATAU LANGSUNG MATI!'",
+                    "🗣️ 'CUMA GITU? NENEK SAYA BERTARUNG LEBIH KERAS!'",
+                    "🗣️ 'MAKANAN MUDAH LAINNYA UNTUK ARENA!'",
+                    "🗣️ 'BUUUU! KELUAR DARI LANTAI!'",
+                    "🗣️ 'LIHAT DIA LIATAN! MENJIJIKKAN!'",
+                    "🗣️ 'RASAKAN ITU, BADUT!'",
+                    "🗣️ 'LANTAINYA BILANG HALO!'"
+                ],
+                winDialogues: [
+                    "🗣️ 'TIDAK PERCAYA! JUARA BARU TELAH LAHIR?!'",
+                    "🗣️ 'DEMI PARA DEWA... SANG BEAST TELAH TUMBANG!'",
+                    "🗣️ 'SIAPA LEGENDA MUTLAK INI?!'",
+                    "🗣️ 'KEMULIAAN BAGI PAHLAWAN BARU KOLOSEUM!'",
+                    "🗣️ 'A-AKU TIDAK PERCAYA MATAKU... DIA MENANG?!'",
+                    "🗣️ 'SANG RAJA TELAH MATI! HIDUP SANG JUARA!'",
+                    "🗣️ 'KEJUTAN YANG GEMILANG! LUAR BIASA!'",
+                    "🗣️ 'MALAM INI KITA MAKAN SEPERTI RAJA! PERTARUNGAN HEBAT!'"
+                ],
+                loseDialogues: [
+                    "🗣️ 'SATU LAGI JIWA DIAMBIL OLEH KELOMPOK BODOH!'",
+                    "🗣️ 'BERI MAKAN MAYATNYA KE ANJING PEMBURU!'",
+                    "🗣️ 'YAH, PERTUNJUKAN YANG SANGAT SINGKAT!'",
+                    "🗣️ 'SEBUAH KORBAN YANG MENGECEWAKAN!'",
+                    "🗣️ 'JATUH KE DEBU TEMPAT SEHARUSNYA ANDA BERADA!'",
+                    "🗣️ 'ISTIRAHATLAH DALAM KEPINGAN, BODOH!'",
+                    "🗣️ 'BUUU! PETARUNG YANG SANGAT BURUK!'",
+                    "🗣️ 'ARENA MENGAMBIL KORBAN LAINNYA!'"
+                ]
+            }
+        };
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('btn-lang-en').classList.toggle('active-lang', lang === 'en');
+            document.getElementById('btn-lang-id', lang).classList.toggle('active-lang', lang === 'id');
+
+            // Update static UI elements
+            const t = translations[currentLang];
+            document.getElementById('main-title').innerText = t.title;
+            document.getElementById('lbl-lvl').innerText = t.lblLvl;
+            document.getElementById('lbl-wins').innerText = t.lblWins;
+            document.getElementById('lbl-deaths').innerText = t.lblDeaths;
+            document.getElementById('lbl-combo').innerText = t.lblCombo;
+            document.getElementById('btn-dmg-up').innerText = t.dmgUp;
+            document.getElementById('btn-hp-up').innerText = t.hpUp;
+            document.getElementById('btn-stamina-up').innerText = t.staminaUp;
+            document.getElementById('btn-jump').innerText = t.jumpBtn;
+            document.getElementById('btn-dodge').innerText = t.dodgeBtn;
+            document.getElementById('btn-attack').innerText = t.hitBtn;
+            document.getElementById('desktop-instructions-text').innerHTML = t.desktopControls;
+            document.getElementById('overlay-credit').innerText = t.credit;
+
+            if (gameState === 'START') {
+                document.getElementById('overlay-title').innerText = t.title;
+                document.getElementById('overlay-desc').innerText = t.startDesc;
+                document.getElementById('btn-action').innerText = t.startBtn;
+            } else if (gameState === 'DEATH') {
+                document.getElementById('overlay-title').innerText = t.youDie;
+                document.getElementById('btn-action').innerText = t.tryAgain;
+            } else if (gameState === 'WIN_PAUSE') {
+                document.getElementById('overlay-title').innerText = t.lvlBeaten(stats.wins);
+                document.getElementById('overlay-desc').innerText = t.chooseEnhancement;
+            } else if (gameState === 'VICTORY') {
+                document.getElementById('overlay-title').innerText = t.winLegend;
+            }
+        }
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const lvlDisplay = document.getElementById('lvl-display');
@@ -267,116 +450,31 @@
         const upgradeOptions = document.getElementById('upgrade-options');
         const deathTutorialText = document.getElementById('death-tutorial-text');
         const btnAction = document.getElementById('btn-action');
+        const langSelector = document.getElementById('lang-selector');
 
-        let stats = {
-            level: 1,
-            wins: 0,
-            deaths: 0
-        };
-
+        let stats = { level: 1, wins: 0, deaths: 0 };
         let gameState = 'START'; 
         let winDelayTimer = 0;
         let cutsceneTimer = 0;
         let deathAnimTimer = 0;
         let bossDeathAnimTimer = 0;
-        
         let crowdTimer = 0;
         let activeCrowdText = "";
-
-        // Hit-Stop (Hitlag) State
         let hitStopFrames = 0;
-
-        // Particle System Array & Helper
         let particles = [];
-
-        function spawnParticles(x, y, type, count) {
-            for (let i = 0; i < count; i++) {
-                let angle = Math.random() * Math.PI * 2;
-                let speed = Math.random() * 4 + 1;
-                let color = '#d4af37';
-                if (type === 'blood') {
-                    color = Math.random() > 0.5 ? '#e06c75' : '#be5046';
-                } else if (type === 'spark') {
-                    color = '#ffe599';
-                } else if (type === 'dust') {
-                    color = '#8a6f52';
-                    angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
-                    speed = Math.random() * 2 + 0.5;
-                } else if (type === 'sweat') {
-                    color = '#61afef';
-                    angle = Math.PI / 2 + (Math.random() - 0.5) * 0.5;
-                    speed = Math.random() * 1.5 + 0.5;
-                }
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed - (type === 'dust' ? 1 : 0),
-                    size: Math.random() * 4 + 2,
-                    color: color,
-                    alpha: 1.0,
-                    life: 0,
-                    maxLife: Math.random() * 20 + 15,
-                    type: type
-                });
-            }
-        }
-
-        // Screen Shake State
         let shakeTimer = 0;
         let shakeIntensity = 8;
-
-        // Visual Trail / Ghost Effect Array
         let playerTrail = [];
-
-        // Ground tracking for landing dust clouds
         let playerWasGrounded = true;
         let bossWasGrounded = true;
 
-        // Expanded Random Dialogues
-        const mockDialogues = [
-            "🗣️ 'HA HA HA! PATHETIC WORM!'",
-            "🗣️ 'WAKE UP OR DIE ALREADY!'",
-            "🗣️ 'THAT'S IT? MY GRANDMA FIGHTS HARDER!'",
-            "🗣️ 'ANOTHER EASY MEAL FOR THE ARENA!'",
-            "🗣️ 'BOOOOO! GET OFF THE FLOOR!'",
-            "🗣️ 'LOOK AT HIM SQUIRM! DISGUSTING!'",
-            "🗣️ 'TAKE THAT, YOU CLOWN!'",
-            "🗣️ 'THE FLOOR SAYS HELLO!'"
-        ];
-
-        const winDialogues = [
-            "🗣️ 'UNBELIEVABLE! A NEW CHAMPION RISES?!'",
-            "🗣️ 'BY THE GODS... THE BEAST HAS FALLEN!'",
-            "🗣️ 'WHO IS THIS ABSOLUTE LEGEND?!'",
-            "🗣️ 'GLORY TO THE NEW HERO OF THE COLOSSEUM!'",
-            "🗣️ 'I-I CANNOT BELIEVE MY EYES... HE WON?!'",
-            "🗣️ 'THE KING IS DEAD! ALL HAIL THE CHAMPION!'",
-            "🗣️ 'A GLORIOUS UPSET! INCREDIBLE!'",
-            "🗣️ 'WE EAT LIKE KINGS TONIGHT! WHAT AT FIGHT!'"
-        ];
-
-        const loseDialogues = [
-            "🗣️ 'ANOTHER SOUL CLAIMED BY THE FOOLS!'",
-            "🗣️ 'FEED THE CORPSE TO THE HOUNDS!'",
-            "🗣️ 'WELL, THAT WAS A SHORT PERFORMANCE!'",
-            "🗣️ 'ANOTHER DISAPPOINTING SACRIFICE!'",
-            "🗣️ 'DOWN IN THE DUST WHERE YOU BELONG!'",
-            "🗣️ 'REST IN PIECES, FOOL!'",
-            "🗣️ 'BOOO! WHAT A TERRIBLE FIGHTER!'",
-            "🗣️ 'THE ARENA CLAIMS ANOTHER VICTIM!'"
-        ];
-
         const groundLevel = 290;
-        
-        // 4-Tier Pyramid Platforms Setup
         const platforms = [
             { x: 140, y: 230, width: 520, height: 12 }, 
             { x: 260, y: 170, width: 280, height: 12 }, 
             { x: 360, y: 110, width: 80, height: 12 }   
         ];
 
-        // Unique Distinct Audience Spectators Setup
         const audienceMembers = [];
         for (let x = 80; x <= 225; x += 22) {
             audienceMembers.push({ x: x, y: 68, type: Math.floor(Math.random() * 5), size: 10 + Math.random() * 4, phase: Math.random() * 10, color: ['#c8b090', '#9e8263', '#d4af37', '#8a6f52', '#a67c52'][Math.floor(Math.random()*5)] });
@@ -388,52 +486,15 @@
         }
 
         const player = {
-            x: 100,
-            y: groundLevel - 42,
-            width: 28,
-            height: 42,
-            speed: 4.5,
-            vy: 0,
-            gravity: 0.55,
-            jumpForce: -9.2,
-            isGrounded: true,
-            hp: 100,
-            maxHp: 100,
-            damageMultiplier: 1.0,
-            stamina: 100,
-            maxStamina: 100,
-            isDodging: false,
-            dodgeTimer: 0,
-            isAttacking: false,
-            attackTimer: 0,
-            facing: 1,
-            comboCount: 0,
-            comboTimer: 0,
-            rotation: 0
+            x: 100, y: groundLevel - 42, width: 28, height: 42, speed: 4.5, vy: 0, gravity: 0.55, jumpForce: -9.2, isGrounded: true,
+            hp: 100, maxHp: 100, damageMultiplier: 1.0, stamina: 100, maxStamina: 100, isDodging: false, dodgeTimer: 0,
+            isAttacking: false, attackTimer: 0, facing: 1, comboCount: 0, comboTimer: 0, rotation: 0
         };
 
         const boss = {
-            x: 650,
-            y: groundLevel - 65,
-            width: 48,
-            height: 65,
-            hp: 300,
-            maxHp: 300,
-            attackCooldown: 0,
-            state: 'IDLE', 
-            telegraphTimer: 0,
-            dodgeTimer: 0,
-            vx: 0,
-            speedMultiplier: 1.0,
-            hasDealtDamage: false,
-            vy: 0,
-            gravity: 0.55,
-            jumpForce: -9.2,
-            isGrounded: true,
-            phase2Triggered: false,
-            hasSecondWeapon: false,
-            comboCount: 0,
-            rotation: 0
+            x: 650, y: groundLevel - 65, width: 48, height: 65, hp: 300, maxHp: 300, attackCooldown: 0, state: 'IDLE', 
+            telegraphTimer: 0, dodgeTimer: 0, vx: 0, speedMultiplier: 1.0, hasDealtDamage: false, vy: 0, gravity: 0.55,
+            jumpForce: -9.2, isGrounded: true, phase2Triggered: false, hasSecondWeapon: false, comboCount: 0, rotation: 0
         };
 
         let lasers = [];
@@ -455,7 +516,6 @@
             if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
         });
 
-        // Touch event bindings for mobile layout
         const bindTouch = (id, startAction, endAction) => {
             const el = document.getElementById(id);
             if (!el) return;
@@ -471,10 +531,27 @@
         bindTouch('btn-dodge', () => triggerDodge());
         bindTouch('btn-attack', () => triggerAttack());
 
-        document.getElementById('btn-dmg-up').addEventListener('click', () => applyUpgrade('damage'));
-        document.getElementById('btn-hp-up').addEventListener('click', () => applyUpgrade('health'));
-        document.getElementById('btn-stamina-up').addEventListener('click', () => applyUpgrade('stamina'));
-        btnAction.addEventListener('click', handleActionButton);
+        function spawnParticles(x, y, type, count) {
+            for (let i = 0; i < count; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 4 + 1;
+                let color = '#d4af37';
+                if (type === 'blood') {
+                    color = Math.random() > 0.5 ? '#e06c75' : '#be5046';
+                } else if (type === 'spark') {
+                    color = '#ffe599';
+                } else if (type === 'dust') {
+                    color = '#8a6f52';
+                    angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
+                    speed = Math.random() * 2 + 0.5;
+                } else if (type === 'sweat') {
+                    color = '#61afef';
+                    angle = Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+                    speed = Math.random() * 1.5 + 0.5;
+                }
+                particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - (type === 'dust' ? 1 : 0), size: Math.random() * 4 + 2, color, alpha: 1.0, life: 0, maxLife: Math.random() * 20 + 15, type });
+            }
+        }
 
         function handleActionButton() {
             if (gameState === 'START') {
@@ -518,7 +595,6 @@
         function triggerAttack() {
             if (player.stamina >= 20 && !player.isAttacking && !player.isDodging && gameState === 'PLAYING') {
                 player.facing = boss.x >= player.x ? 1 : -1;
-
                 player.isAttacking = true;
                 player.attackTimer = 12;
                 player.stamina -= 20; 
@@ -547,7 +623,8 @@
                         boss.vy = -7;
                         boss.vx = (Math.random() - 0.5) * 6;
                         boss.rotation = 0;
-                        activeCrowdText = winDialogues[Math.floor(Math.random() * winDialogues.length)];
+                        const t = translations[currentLang];
+                        activeCrowdText = t.winDialogues[Math.floor(Math.random() * t.winDialogues.length)];
                         crowdTimer = 160;
                     }
                 }
@@ -576,28 +653,31 @@
         function handleWin() {
             stats.wins++;
             winDisplay.innerText = stats.wins;
+            const t = translations[currentLang];
 
             if (stats.wins >= 10) {
                 gameState = 'VICTORY';
-                overlayTitle.innerText = "YOU WIN - LEGEND";
+                overlayTitle.innerText = t.winLegend;
                 overlayTitle.style.color = "#d4af37";
                 overlayDesc.style.display = "none";
                 upgradeOptions.style.display = "none";
                 deathTutorialText.style.display = "none";
                 btnAction.style.display = "none";
+                langSelector.style.display = "none";
                 overlayCredit.style.display = "block";
                 overlayScreen.style.display = "flex";
                 return;
             }
 
             gameState = 'WIN_PAUSE';
-            overlayTitle.innerText = `Level ${stats.wins} Beaten!`;
+            overlayTitle.innerText = t.lvlBeaten(stats.wins);
             overlayTitle.style.color = "#d4af37";
             overlayDesc.style.display = "block";
-            overlayDesc.innerText = "Choose your enhancement:";
+            overlayDesc.innerText = t.chooseEnhancement;
             upgradeOptions.style.display = "flex";
             deathTutorialText.style.display = "none";
             btnAction.style.display = "none";
+            langSelector.style.display = "none";
             overlayCredit.style.display = "none";
             overlayScreen.style.display = "flex";
         }
@@ -652,31 +732,25 @@
             player.rotation = 0;
             boss.state = 'CELEBRATING'; 
             boss.vx = 0;
-            activeCrowdText = loseDialogues[Math.floor(Math.random() * loseDialogues.length)];
+            const t = translations[currentLang];
+            activeCrowdText = t.loseDialogues[Math.floor(Math.random() * t.loseDialogues.length)];
             crowdTimer = 140;
         }
 
         function finalizeDeathScreen() {
             gameState = 'DEATH';
-            overlayTitle.innerText = "YOU DIE";
+            const t = translations[currentLang];
+            overlayTitle.innerText = t.youDie;
             overlayTitle.style.color = "#e06c75";
             overlayDesc.style.display = "none";
             upgradeOptions.style.display = "none";
 
-            const tutorialQuotes = [
-                "💡 **Pro Tip:** When the boss drops to 50% HP, Phase 2 awakens with dual weapons and +25% speed!",
-                "💡 **Pro Tip:** Time your dodge roll to phase through boss charges safely.",
-                "💡 **Pro Tip:** Land 4 consecutive hits to fire a powerful ranged laser beam!",
-                "💡 **Pro Tip:** Watch your stamina bar! Empty stamina disables movement speed.",
-                "💡 **Pro Tip:** Use pyramid platforms to jump over aggressive charges.",
-                "💡 **Pro Tip:** Want to get in touch or check my projects? Visit my <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Contact Page</a>!"
-            ];
-
-            deathTutorialText.innerHTML = tutorialQuotes[Math.floor(Math.random() * tutorialQuotes.length)];
+            deathTutorialText.innerHTML = t.tutorialQuotes[Math.floor(Math.random() * t.tutorialQuotes.length)];
             deathTutorialText.style.display = "block";
 
-            btnAction.innerText = "TRY AGAIN?";
+            btnAction.innerText = t.tryAgain;
             btnAction.style.display = "block";
+            langSelector.style.display = "flex";
             overlayCredit.style.display = "none";
             overlayScreen.style.display = "flex";
         }
@@ -756,18 +830,12 @@
             particles.forEach((p, index) => {
                 p.x += p.vx;
                 p.y += p.vy;
-                if (p.type === 'dust') {
-                    p.vy += 0.04;
-                } else if (p.type === 'sweat') {
-                    p.vy += 0.1;
-                } else {
-                    p.vy += 0.2; 
-                }
+                if (p.type === 'dust') p.vy += 0.04;
+                else if (p.type === 'sweat') p.vy += 0.1;
+                else p.vy += 0.2; 
                 p.life++;
                 p.alpha = 1 - (p.life / p.maxLife);
-                if (p.life >= p.maxLife || p.alpha <= 0) {
-                    particles.splice(index, 1);
-                }
+                if (p.life >= p.maxLife || p.alpha <= 0) particles.splice(index, 1);
             });
 
             if (gameState === 'BOSS_DEATH_ANIMATION') {
@@ -808,29 +876,21 @@
                 }
 
                 applyPhysics(boss);
-                if (boss.isGrounded && (deathAnimTimer % 35 === 0)) {
-                    boss.vy = -6.5; 
-                }
+                if (boss.isGrounded && (deathAnimTimer % 35 === 0)) boss.vy = -6.5; 
 
-                if (deathAnimTimer <= 0) {
-                    finalizeDeathScreen();
-                }
+                if (deathAnimTimer <= 0) finalizeDeathScreen();
                 return;
             }
 
             if (gameState === 'PHASE2_CUTSCENE') {
                 cutsceneTimer--;
-                if (cutsceneTimer <= 0) {
-                    gameState = 'PLAYING';
-                }
+                if (cutsceneTimer <= 0) gameState = 'PLAYING';
                 return;
             }
 
             if (gameState === 'WIN_DELAY') {
                 winDelayTimer--;
-                if (winDelayTimer <= 0) {
-                    handleWin();
-                }
+                if (winDelayTimer <= 0) handleWin();
                 return;
             }
 
@@ -870,7 +930,6 @@
                     
                     hitStopFrames = 2;
                     spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'blood', 10);
-
                     let laserDmg = (15 + stats.level * 3) * player.damageMultiplier;
                     boss.hp -= laserDmg;
                     checkBossPhase2();
@@ -881,7 +940,8 @@
                         boss.vy = -7;
                         boss.vx = (Math.random() - 0.5) * 6;
                         boss.rotation = 0;
-                        activeCrowdText = winDialogues[Math.floor(Math.random() * winDialogues.length)];
+                        const t = translations[currentLang];
+                        activeCrowdText = t.winDialogues[Math.floor(Math.random() * t.winDialogues.length)];
                         crowdTimer = 160;
                     }
                 }
@@ -987,7 +1047,8 @@
                         boss.hasDealtDamage = true; 
 
                         shakeTimer = 16;
-                        activeCrowdText = mockDialogues[Math.floor(Math.random() * mockDialogues.length)];
+                        const t = translations[currentLang];
+                        activeCrowdText = t.mockDialogues[Math.floor(Math.random() * t.mockDialogues.length)];
                         crowdTimer = 140;
 
                         if (player.hp <= 0) triggerDeathSequence();
@@ -1198,21 +1259,23 @@
                 ctx.fillStyle = '#d4af37';
                 ctx.font = 'bold 18px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText("⚠️ PHASE 2: DUAL WEAPONS! ⚠️", canvas.width / 2, canvas.height / 2 - 10);
+                const t = translations[currentLang];
+                ctx.fillText(t.phase2Title, canvas.width / 2, canvas.height / 2 - 10);
                 ctx.fillStyle = '#b89768';
                 ctx.font = '12px sans-serif';
-                ctx.fillText("Boss speed & fury increased!", canvas.width / 2, canvas.height / 2 + 15);
+                ctx.fillText(t.phase2Desc, canvas.width / 2, canvas.height / 2 + 15);
                 ctx.textAlign = 'left';
             }
 
             // UI Bars
+            const t = translations[currentLang];
             ctx.fillStyle = '#21160f';
             ctx.fillRect(15, 15, 130, 10);
             ctx.fillStyle = '#98c379';
             ctx.fillRect(15, 15, Math.max(0, (player.hp / player.maxHp) * 130), 10);
             ctx.fillStyle = '#fff';
             ctx.font = '9px sans-serif';
-            ctx.fillText(`HP: ${Math.max(0, Math.floor(player.hp))}`, 20, 23);
+            ctx.fillText(`${t.hpText}: ${Math.max(0, Math.floor(player.hp))}`, 20, 23);
 
             ctx.fillStyle = '#21160f';
             ctx.fillRect(15, 28, 90, 6);
@@ -1224,7 +1287,7 @@
             ctx.fillStyle = boss.hasSecondWeapon ? '#e06c75' : '#be5046';
             ctx.fillRect(canvas.width - 145, 15, Math.max(0, (boss.hp / boss.maxHp) * 130), 10);
             ctx.fillStyle = '#fff';
-            ctx.fillText(`BOSS ${boss.hasSecondWeapon ? 'P2' : ''}`, canvas.width - 120, 23);
+            ctx.fillText(`${boss.hasSecondWeapon ? t.bossP2 : t.bossText}`, canvas.width - 120, 23);
 
             ctx.restore();
         }
