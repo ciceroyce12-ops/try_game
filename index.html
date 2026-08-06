@@ -58,7 +58,7 @@
             display: block;
             border-radius: 6px;
         }
-        /* Pause & Victory Overlay */
+        /* Overlay Screen (Start, Upgrades, Victory, Death) */
         #overlay-screen {
             position: absolute;
             top: 0;
@@ -66,7 +66,7 @@
             width: 100%;
             height: 100%;
             background: rgba(18, 13, 9, 0.94);
-            display: none;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -84,10 +84,10 @@
         #overlay-screen p {
             margin: 0 0 15px 0;
             font-size: 0.95rem;
-            color: #61afef;
+            color: #b89768;
         }
         .upgrade-container {
-            display: flex;
+            display: none;
             flex-direction: column;
             gap: 10px;
             width: 100%;
@@ -121,17 +121,21 @@
             border: 1px dashed #543d2b;
             text-align: left;
         }
-        #btn-restart {
+        #btn-action {
             background-color: #d4af37;
             color: #120d09;
             border: none;
-            padding: 10px 25px;
-            font-size: 0.95rem;
+            padding: 12px 30px;
+            font-size: 1rem;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
-            display: none;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            display: block;
+            margin-top: 10px;
+        }
+        #btn-action:active {
+            background-color: #b89768;
         }
         
         /* Portrait Split-Thumb Mobile Controls */
@@ -181,15 +185,16 @@
     <div class="canvas-container">
         <canvas id="gameCanvas" width="800" height="350"></canvas>
         <div id="overlay-screen">
-            <h2 id="overlay-title">Choose Upgrade:</h2>
+            <h2 id="overlay-title" style="color: #d4af37;">Colosseum of Fools</h2>
+            <p id="overlay-desc">Enter the arena and survive the champion trials.</p>
             <div id="upgrade-options" class="upgrade-container">
                 <button class="btn-upgrade" id="btn-dmg-up">⚔️ UPGRADE DAMAGE (+50%)</button>
                 <button class="btn-upgrade" id="btn-hp-up">🛡️ UPGRADE HEALTH (+50 HP & Heal)</button>
                 <button class="btn-upgrade" id="btn-stamina-up">⚡ UPGRADE STAMINA (+15 & Refill)</button>
             </div>
             <div id="death-tutorial-text"></div>
-            <button id="btn-restart">TRY AGAIN?</button>
-            <p id="overlay-credit" style="display:none; margin-top: 10px; font-size: 0.85rem;">made by Ciceroyce</p>
+            <button id="btn-action">START GAME</button>
+            <p id="overlay-credit" style="margin-top: 15px; font-size: 0.85rem; color: #8a6f52;">made by Ciceroyce</p>
         </div>
     </div>
 
@@ -215,10 +220,11 @@
         const comboDisplay = document.getElementById('combo-display');
         const overlayScreen = document.getElementById('overlay-screen');
         const overlayTitle = document.getElementById('overlay-title');
+        const overlayDesc = document.getElementById('overlay-desc');
         const overlayCredit = document.getElementById('overlay-credit');
         const upgradeOptions = document.getElementById('upgrade-options');
         const deathTutorialText = document.getElementById('death-tutorial-text');
-        const btnRestart = document.getElementById('btn-restart');
+        const btnAction = document.getElementById('btn-action');
 
         let stats = {
             level: 1,
@@ -226,7 +232,7 @@
             deaths: 0
         };
 
-        let gameState = 'PLAYING'; 
+        let gameState = 'START'; 
         let winDelayTimer = 0;
         let cutsceneTimer = 0;
         let deathAnimTimer = 0;
@@ -387,7 +393,7 @@
 
         window.addEventListener('keydown', e => {
             if (gameState !== 'PLAYING') {
-                if (e.key === 'Enter' && gameState === 'DEATH') restartGameAfterDeath();
+                if (e.key === 'Enter') handleActionButton();
                 return;
             }
             if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
@@ -420,7 +426,20 @@
         document.getElementById('btn-dmg-up').addEventListener('click', () => applyUpgrade('damage'));
         document.getElementById('btn-hp-up').addEventListener('click', () => applyUpgrade('health'));
         document.getElementById('btn-stamina-up').addEventListener('click', () => applyUpgrade('stamina'));
-        btnRestart.addEventListener('click', () => restartGameAfterDeath());
+        btnAction.addEventListener('click', handleActionButton);
+
+        function handleActionButton() {
+            if (gameState === 'START') {
+                startGame();
+            } else if (gameState === 'DEATH') {
+                restartGameAfterDeath();
+            }
+        }
+
+        function startGame() {
+            overlayScreen.style.display = "none";
+            gameState = 'PLAYING';
+        }
 
         function triggerJump() {
             if (player.isGrounded && !player.isDodging && player.stamina >= 15) {
@@ -511,20 +530,23 @@
                 gameState = 'VICTORY';
                 overlayTitle.innerText = "YOU WIN - LEGEND";
                 overlayTitle.style.color = "#d4af37";
+                overlayDesc.style.display = "none";
                 upgradeOptions.style.display = "none";
                 deathTutorialText.style.display = "none";
-                btnRestart.style.display = "none";
+                btnAction.style.display = "none";
                 overlayCredit.style.display = "block";
                 overlayScreen.style.display = "flex";
                 return;
             }
 
             gameState = 'WIN_PAUSE';
-            overlayTitle.innerText = `Level ${stats.wins} Beaten! Upgrade:`;
+            overlayTitle.innerText = `Level ${stats.wins} Beaten!`;
             overlayTitle.style.color = "#d4af37";
+            overlayDesc.style.display = "block";
+            overlayDesc.innerText = "Choose your enhancement:";
             upgradeOptions.style.display = "flex";
             deathTutorialText.style.display = "none";
-            btnRestart.style.display = "none";
+            btnAction.style.display = "none";
             overlayCredit.style.display = "none";
             overlayScreen.style.display = "flex";
         }
@@ -586,6 +608,7 @@
             gameState = 'DEATH';
             overlayTitle.innerText = "YOU DIE";
             overlayTitle.style.color = "#e06c75";
+            overlayDesc.style.display = "none";
             upgradeOptions.style.display = "none";
 
             const tutorialQuotes = [
@@ -599,7 +622,8 @@
             deathTutorialText.innerHTML = tutorialQuotes[Math.floor(Math.random() * tutorialQuotes.length)];
             deathTutorialText.style.display = "block";
 
-            btnRestart.style.display = "block";
+            btnAction.innerText = "TRY AGAIN?";
+            btnAction.style.display = "block";
             overlayCredit.style.display = "none";
             overlayScreen.style.display = "flex";
         }
@@ -941,9 +965,13 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            let globalBounce = Math.sin(Date.now() / 120) * 4;
+            // Dynamic Audience Movement (Calm vs Excited/Moving Lot on Hit, Win, or Die)
+            let isExcited = (crowdTimer > 0) || (gameState === 'WIN_DELAY' || gameState === 'WIN_PAUSE' || gameState === 'VICTORY' || gameState === 'DEATH' || gameState === 'DEATH_ANIMATION');
+            let bounceSpeed = isExcited ? 70 : 350; // fast frantic movement when excited, slow gentle bobbing when calm
+            let bounceAmplitude = isExcited ? 7 : 1.2; // large jumping range when excited, barely moving when calm
+
             audienceMembers.forEach((bug) => {
-                let bounce = Math.sin(Date.now() / 80 + bug.phase) * 4 + (crowdTimer > 0 ? globalBounce * 1.5 : 0);
+                let bounce = Math.sin(Date.now() / bounceSpeed + bug.phase) * bounceAmplitude;
                 let bx = bug.x;
                 let by = bug.y + bounce;
                 let s = bug.size;
@@ -956,7 +984,7 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                ctx.fillStyle = crowdTimer > 0 ? '#e06c75' : '#120d09';
+                ctx.fillStyle = isExcited ? '#e06c75' : '#120d09';
                 ctx.fillRect(bx - s * 0.4, by - s * 0.2, s * 0.3, s * 0.3);
                 ctx.fillRect(bx + s * 0.1, by - s * 0.2, s * 0.3, s * 0.3);
             });
