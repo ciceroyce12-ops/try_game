@@ -21,35 +21,8 @@
             color: #e0d0c0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
-        /* Landscape enforce overlay */
-        #orientation-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #120d09;
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-        }
-        #orientation-overlay .phone-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            animation: rotate-phone 2s infinite ease-in-out;
-        }
-        @keyframes rotate-phone {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(-90deg); }
-            100% { transform: rotate(-90deg); }
-        }
 
-        /* Landscape Layout Container */
+        /* Portrait & Landscape Layout Container */
         .game-wrapper {
             display: flex;
             flex-direction: column;
@@ -57,7 +30,7 @@
             justify-content: space-between;
             width: 100vw;
             height: 100vh;
-            padding: 5px 10px;
+            padding: 8px 10px;
         }
 
         .header-container {
@@ -67,7 +40,7 @@
         }
         h1 {
             margin: 0;
-            font-size: 0.95rem;
+            font-size: 1rem;
             letter-spacing: 1px;
             color: #d4af37;
             text-transform: uppercase;
@@ -86,7 +59,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 0; /* allows flex box to shrink properly */
+            min-height: 0; 
         }
         canvas {
             border: 2px solid #3d2b1f;
@@ -207,7 +180,8 @@
             justify-content: space-between;
             width: 100%;
             max-width: 800px;
-            margin-top: 4px;
+            margin-top: 6px;
+            margin-bottom: env(safe-area-inset-bottom, 6px);
             padding: 0 5px;
             gap: 8px;
             flex-shrink: 0;
@@ -224,8 +198,8 @@
             background-color: #21160f;
             color: #e0d0c0;
             border: 1px solid #453224;
-            padding: 10px 0;
-            font-size: 0.85rem;
+            padding: 12px 0;
+            font-size: 0.9rem;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
@@ -252,36 +226,14 @@
             flex-shrink: 0;
         }
 
-        /* Show orientation notice if portrait mode on mobile */
-        @media screen and (orientation: portrait) and (max-width: 900px) {
-            #orientation-overlay {
-                display: flex;
-            }
-            .game-wrapper {
-                display: none;
-            }
-        }
-
-        @media (min-width: 768px) and (orientation: landscape) {
-            h1 { font-size: 1.2rem; }
-            #stats { font-size: 0.85rem; }
-        }
-
         /* Hide touch controls and show keyboard guide ONLY on actual desktop/mouse setups */
-        @media (min-width: 768px) and (orientation: landscape) and (hover: hover) and (pointer: fine) {
+        @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
             .controls-wrapper { display: none; }
             .desktop-instructions { display: block; }
         }
     </style>
 </head>
 <body>
-
-    <!-- Orientation Enforcement Overlay -->
-    <div id="orientation-overlay">
-        <div class="phone-icon">📱</div>
-        <h2 style="color: #d4af37; margin: 0 0 10px 0;">Please Rotate Your Device</h2>
-        <p style="color: #b89768; margin: 0;">This game is designed to be played in landscape mode for the best visual experience.</p>
-    </div>
 
     <div class="game-wrapper">
         <div class="header-container">
@@ -326,7 +278,7 @@
 
         <!-- PC Keyboard Guide -->
         <div class="desktop-instructions" id="desktop-instructions-text">
-            ⌨️ **Controls:** Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>
+            ⌨️ <b>Controls:</b> Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>
         </div>
     </div>
 
@@ -349,8 +301,8 @@
                 staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
                 tryAgain: "TRY AGAIN?",
                 youDie: "YOU DIE",
-                phase2Title: "⚠️ PHASE 2: UNIQUE MOVESET ACTIVATED! ⚠️",
-                phase2Desc: "Boss unleashes specialized 4-attack combat prowess!",
+                phase2Title: "⚠️ PHASE 2: WEAPON THROWN BY CROWD! ⚠️",
+                phase2Desc: "Boss catches the second weapon & enrages!",
                 bossApproaching: "⚠️ ARENA CHAMPION APPROACHING ⚠️",
                 getReady: "GET READY TO FIGHT!",
                 desktopControls: "⌨️ <b>Controls:</b> Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>",
@@ -361,7 +313,7 @@
                 chooseEnhancement: "Choose your enhancement:",
                 lvlBeaten: (lvl) => `Level ${lvl} Beaten!`,
                 tutorialQuotes: [
-                    "💡 <b>Pro Tip:</b> When the boss drops to 50% HP, Phase 2 awakens with unique movesets and increased aggression!",
+                    "💡 <b>Pro Tip:</b> When the boss drops to 50% HP, Phase 2 awakens with dual weapons and +25% speed!",
                     "💡 <b>Pro Tip:</b> Time your dodge roll to phase through boss charges safely.",
                     "💡 <b>Pro Tip:</b> Land 4 consecutive hits to fire a powerful ranged laser beam!",
                     "💡 <b>Pro Tip:</b> Watch your stamina bar! Empty stamina disables movement speed.",
@@ -414,8 +366,8 @@
                 staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
                 tryAgain: "COBA LAGI?",
                 youDie: "ANDA MATI",
-                phase2Title: "⚠️ PHASE 2: MOVESET UNIK DIAKTIFKAN! ⚠️",
-                phase2Desc: "Boss mengeluarkan keahlian bertarung 4-serangan khusus!",
+                phase2Title: "⚠️ PHASE 2: SENJATA LEMPARAN PENONTON! ⚠️",
+                phase2Desc: "Boss nangkep senjata kedua dan ngamuk!",
                 bossApproaching: "⚠️ CHAMPION ARENA MEMASUKI ARENA ⚠️",
                 getReady: "BERSIAPLAH UNTUK BERTARUNG!",
                 desktopControls: "⌨️ <b>Kontrol:</b> Gerak: <b>A / D</b> atau <b>Arrow Keys</b> | Lompat: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Serang: <b>J / Enter</b>",
@@ -426,7 +378,7 @@
                 chooseEnhancement: "Pilih buff buat upgrade:",
                 lvlBeaten: (lvl) => `Level ${lvl} Clear!`,
                 tutorialQuotes: [
-                    "💡 <b>Tips Pro:</b> Pas HP boss sisa 50%, Phase 2 bakal aktif pake moveset unik dan agresi meningkat!",
+                    "💡 <b>Tips Pro:</b> Pas HP boss sisa 50%, Phase 2 bakal aktif pake dual weapons dan kecepatan nambah 25%!",
                     "💡 <b>Tips Pro:</b> Pas-in timing dodge lu biar bisa nembus serangan boss dengan aman tanpa kena hit.",
                     "💡 <b>Tips Pro:</b> Kumpulin 4 combo hits berturut-turut buat nembak laser jarak jauh yang sakit banget!",
                     "💡 <b>Tips Pro:</b> Perhatiin bar stamina! Kalau abis, karakter bakal lemes dan geraknya lambat.",
@@ -546,82 +498,6 @@
             "The First Fool, Modred"
         ];
 
-        // ==========================================
-        // 10 UNIQUE BOSS MOVESETS (EACH WITH EXACTLY 4 ATTACKS)
-        // ==========================================
-        const bossMovesets = [
-            // Boss 0 (Valen): Gladiator Phase 2
-            [
-                { name: "Shield Slam", speed: 9, telegraph: 28, type: "rush", damageMultiplier: 1.1 },
-                { name: "Ground Cleave", speed: 6, telegraph: 22, type: "leap", damageMultiplier: 1.25 },
-                { name: "Heavy Overhead", speed: 4, telegraph: 38, type: "heavy", damageMultiplier: 1.4 },
-                { name: "Gladiator Charge", speed: 12, telegraph: 16, type: "rush", damageMultiplier: 1.0 }
-            ],
-            // Boss 1 (Gideon): Jester Phase 2
-            [
-                { name: "Dagger Toss", speed: 8, telegraph: 15, type: "projectile", damageMultiplier: 1.1 },
-                { name: "Spin Slash", speed: 13, telegraph: 18, type: "spin", damageMultiplier: 1.2 },
-                { name: "Shadow Blink", speed: 15, telegraph: 12, type: "teleport_rush", damageMultiplier: 1.35 },
-                { name: "Jester Flurry", speed: 10, telegraph: 14, type: "multi_rush", damageMultiplier: 1.25 }
-            ],
-            // Boss 2 (Korg): Pit-Beast Phase 2
-            [
-                { name: "Seismic Stomp", speed: 5, telegraph: 35, type: "shockwave", damageMultiplier: 1.4 },
-                { name: "Beast Roar", speed: 0, telegraph: 25, type: "aoe_stun", damageMultiplier: 1.1 },
-                { name: "Pit Charge", speed: 14, telegraph: 20, type: "heavy_rush", damageMultiplier: 1.5 },
-                { name: "Ground Slam", speed: 7, telegraph: 30, type: "vertical_slam", damageMultiplier: 1.35 }
-            ],
-            // Boss 3 (Isolda): Executioner Phase 2
-            [
-                { name: "Scythe Sweep", speed: 10, telegraph: 20, type: "wide_sweep", damageMultiplier: 1.25 },
-                { name: "Shadow Dash", speed: 16, telegraph: 12, type: "ghost_rush", damageMultiplier: 1.45 },
-                { name: "Guillotine Drop", speed: 8, telegraph: 28, type: "air_drop", damageMultiplier: 1.6 },
-                { name: "Soul Pulse", speed: 6, telegraph: 22, type: "pulse", damageMultiplier: 1.2 }
-            ],
-            // Boss 4 (Malakor): One-Eyed Brute Phase 2
-            [
-                { name: "Eye Beam", speed: 0, telegraph: 25, type: "laser_beam", damageMultiplier: 1.5 },
-                { name: "Mace Smash", speed: 7, telegraph: 30, type: "heavy", damageMultiplier: 1.4 },
-                { name: "Shoulder Tackle", speed: 13, telegraph: 15, type: "rush", damageMultiplier: 1.25 },
-                { name: "Brute Leap", speed: 11, telegraph: 20, type: "leap_slam", damageMultiplier: 1.35 }
-            ],
-            // Boss 5 (Drakul): Ash-Crowned Brute Phase 2
-            [
-                { name: "Volcanic Eruption", speed: 0, telegraph: 30, type: "fire_pillars", damageMultiplier: 1.55 },
-                { name: "Lava Axe Slash", speed: 11, telegraph: 18, type: "fiery_sweep", damageMultiplier: 1.35 },
-                { name: "Ash Dash", speed: 17, telegraph: 10, type: "fire_rush", damageMultiplier: 1.45 },
-                { name: "Meteor Drop", speed: 9, telegraph: 35, type: "meteor_slam", damageMultiplier: 1.7 }
-            ],
-            // Boss 6 (Varis): Warden Phase 2
-            [
-                { name: "Tower Shield Bash", speed: 8, telegraph: 25, type: "shield_push", damageMultiplier: 1.3 },
-                { name: "Halberd Thrust", speed: 14, telegraph: 15, type: "long_thrust", damageMultiplier: 1.45 },
-                { name: "Gate Slam", speed: 6, telegraph: 30, type: "barrier_slam", damageMultiplier: 1.55 },
-                { name: "Warden Wrath", speed: 12, telegraph: 12, type: "multi_stab", damageMultiplier: 1.35 }
-            ],
-            // Boss 7 (Morvath): Sovereign Phase 2
-            [
-                { name: "Blade Barrage", speed: 5, telegraph: 20, type: "proj_barrage", damageMultiplier: 1.35 },
-                { name: "Sovereign Slash", speed: 12, telegraph: 18, type: "energy_slash", damageMultiplier: 1.45 },
-                { name: "Blade Orbit", speed: 8, telegraph: 15, type: "shield_spin", damageMultiplier: 1.25 },
-                { name: "Spectral Warp", speed: 16, telegraph: 10, type: "warp_strike", damageMultiplier: 1.6 }
-            ],
-            // Boss 8 (Valerius): Dread Monarch Phase 2
-            [
-                { name: "Royal Lightning", speed: 0, telegraph: 28, type: "lightning_strike", damageMultiplier: 1.65 },
-                { name: "Scepter Smash", speed: 9, telegraph: 22, type: "gold_shockwave", damageMultiplier: 1.45 },
-                { name: "Imperial Charge", speed: 15, telegraph: 14, type: "royal_rush", damageMultiplier: 1.55 },
-                { name: "Monarch Decree", speed: 7, telegraph: 32, type: "decree_wave", damageMultiplier: 1.75 }
-            ],
-            // Boss 9 (Modred): The First Fool Phase 2
-            [
-                { name: "Shadow Mirage", speed: 18, telegraph: 10, type: "mirage_dash", damageMultiplier: 1.7 },
-                { name: "Phantom Cross", speed: 14, telegraph: 15, type: "cross_slash", damageMultiplier: 1.6 },
-                { name: "Void Laser", speed: 0, telegraph: 25, type: "void_beam", damageMultiplier: 1.9 },
-                { name: "First Fool's Wrath", speed: 16, telegraph: 12, type: "ultimate_combo", damageMultiplier: 2.1 }
-            ]
-        ];
-
         const groundLevel = 290;
         const platforms = [
             { x: 140, y: 230, width: 520, height: 12 }, 
@@ -648,7 +524,7 @@
         const boss = {
             x: 650, y: 0, width: 42, height: 58, hp: 300, maxHp: 300, attackCooldown: 0, state: 'IDLE', 
             telegraphTimer: 0, dodgeTimer: 0, vx: 0, speedMultiplier: 1.0, hasDealtDamage: false, vy: 0, gravity: 0.55,
-            jumpForce: -9.2, isGrounded: true, phase2Triggered: false, hasSecondWeapon: false, comboCount: 0, rotation: 0, currentAttack: null
+            jumpForce: -9.2, isGrounded: true, phase2Triggered: false, hasSecondWeapon: false, comboCount: 0, rotation: 0
         };
 
         function updateBossSize() {
@@ -685,8 +561,8 @@
         const bindTouch = (id, startAction, endAction) => {
             const el = document.getElementById(id);
             if (!el) return;
-            el.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState==='PLAYING') startAction(); });
-            el.addEventListener('touchend', (e) => { e.preventDefault(); if(endAction) endAction(); });
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState==='PLAYING') startAction(); }, {passive: false});
+            el.addEventListener('touchend', (e) => { e.preventDefault(); if(endAction) endAction(); }, {passive: false});
             el.addEventListener('mousedown', (e) => { e.preventDefault(); if(gameState==='PLAYING') startAction(); });
             el.addEventListener('mouseup', (e) => { e.preventDefault(); if(endAction) endAction(); });
         };
@@ -884,7 +760,6 @@
             boss.phase2Triggered = false;
             boss.hasSecondWeapon = false;
             boss.comboCount = 0;
-            boss.currentAttack = null;
             
             player.hp = player.maxHp;
             player.x = 100;
@@ -961,7 +836,6 @@
             boss.phase2Triggered = false;
             boss.hasSecondWeapon = false;
             boss.comboCount = 0;
-            boss.currentAttack = null;
 
             player.comboCount = 0;
             comboDisplay.innerText = player.comboCount;
@@ -1000,7 +874,7 @@
         function updateBossIntroAnim(bIndex, p) {
             boss.hp = boss.maxHp;
             switch(bIndex) {
-                case 0: // Valen - Sky Drop & Impact
+                case 0:
                     if (p < 0.6) {
                         boss.x = 650;
                         boss.y = -100 + (groundLevel - boss.height + 100) * (p / 0.6);
@@ -1014,7 +888,7 @@
                         }
                     }
                     break;
-                case 1: // Gideon - Whirlwind Spin
+                case 1:
                     if (p < 0.5) {
                         boss.x = 400 + Math.sin(p * Math.PI * 6) * 150;
                         boss.y = groundLevel - boss.height;
@@ -1026,7 +900,7 @@
                         boss.rotation = 0;
                     }
                     break;
-                case 2: // Korg - Earthshaking Stomp
+                case 2:
                     boss.x = 650;
                     boss.y = groundLevel - boss.height;
                     if (bossIntroTimer % 35 === 0) {
@@ -1034,12 +908,12 @@
                         spawnParticles(boss.x + boss.width/2, groundLevel, 'dust', 18);
                     }
                     break;
-                case 3: // Lady Isolda - Slow Shadowy Stride
+                case 3:
                     boss.x = 830 - (p * 180);
                     boss.y = groundLevel - boss.height;
                     if (Math.random() < 0.5) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'blood', 3);
                     break;
-                case 4: // Malakor - High Arc Somersault
+                case 4:
                     if (p < 0.7) {
                         let pNorm = p / 0.7;
                         boss.x = 850 - pNorm * 200;
@@ -1055,7 +929,7 @@
                         }
                     }
                     break;
-                case 5: // Drakul - Volcanic Eruption
+                case 5:
                     if (p < 0.3) {
                         boss.x = 650;
                         boss.y = groundLevel + 100;
@@ -1070,23 +944,23 @@
                         boss.y = groundLevel - boss.height;
                     }
                     break;
-                case 6: // Varis - Descending Gate
+                case 6:
                     boss.x = 650;
                     boss.y = -80 + p * (groundLevel - boss.height + 80);
                     if (Math.random() < 0.7) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'spark', 5);
                     break;
-                case 7: // Morvath - Blade Gathering Hover
+                case 7:
                     boss.x = 650;
                     boss.y = (groundLevel - boss.height - 35) + Math.sin(p * Math.PI * 4) * 12;
                     if (Math.random() < 0.6) spawnParticles(boss.x + (Math.random()-0.5)*180, boss.y + (Math.random()-0.5)*120, 'spark', 4);
                     if (p >= 0.85) boss.y = groundLevel - boss.height;
                     break;
-                case 8: // Valerius - Monarch Lightning Descent
+                case 8:
                     boss.x = 650;
                     boss.y = -60 + p * (groundLevel - boss.height + 60);
                     if (Math.random() < 0.5) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'sweat', 4);
                     break;
-                case 9: // Modred - Multi-Dash Shadow Mirage
+                case 9:
                     if (p < 0.25) boss.x = 100 + (p / 0.25) * 550;
                     else if (p < 0.5) boss.x = 650 - ((p - 0.25) / 0.25) * 450;
                     else if (p < 0.75) boss.x = 200 + ((p - 0.5) / 0.25) * 450;
@@ -1097,182 +971,137 @@
             }
         }
 
-        // ==========================================
-        // CUSTOM UNIQUE CANVAS MODELS FOR ALL 10 BOSSES
-        // ==========================================
         function drawUniqueBossModel(bIndex, x, y, w, h, state, hasP2) {
             ctx.save();
             let isCharging = state === 'CHARGING';
-            let isAttacking = state === 'ATTACKING';
 
             switch(bIndex) {
-                case 0: // VALEN: Gladiator (Rust Armor, Red Crest Helmet, Shield, Gladius/Axe)
+                case 0:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#544033';
-                    ctx.fillRect(x + w * 0.15, y + h * 0.25, w * 0.7, h * 0.75); // Body
-                    // Helmet & Crest
+                    ctx.fillRect(x + w * 0.15, y + h * 0.25, w * 0.7, h * 0.75);
                     ctx.fillStyle = '#b89768';
                     ctx.fillRect(x + w * 0.25, y, w * 0.5, h * 0.25);
-                    ctx.fillStyle = '#be5046'; // Red Plume
+                    ctx.fillStyle = '#be5046';
                     ctx.beginPath();
                     ctx.moveTo(x + w * 0.2, y); ctx.lineTo(x + w * 0.8, y); ctx.lineTo(x + w * 0.5, y - 12);
                     ctx.fill();
-                    // Shield
                     ctx.fillStyle = '#8a6f52';
                     ctx.fillRect(x - 8, y + h * 0.35, 12, h * 0.45);
-                    // Gladius Sword
                     ctx.fillStyle = '#e0d0c0';
                     ctx.fillRect(x + w, y + h * 0.25, 18, 6);
-                    if (hasP2) {
-                        ctx.fillRect(x + w, y + h * 0.45, 18, 6);
-                    }
+                    if (hasP2) ctx.fillRect(x + w, y + h * 0.45, 18, 6);
                     break;
-
-                case 1: // GIDEON: Jester (3-Point Bell Hat, Slender, Dual Curved Daggers)
+                case 1:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#5c2c54';
-                    ctx.fillRect(x + w * 0.25, y + h * 0.3, w * 0.5, h * 0.7); // Slender Body
-                    // Jester Hat
+                    ctx.fillRect(x + w * 0.25, y + h * 0.3, w * 0.5, h * 0.7);
                     ctx.fillStyle = '#be5046';
                     ctx.beginPath();
                     ctx.moveTo(x, y + h * 0.3); ctx.lineTo(x + w * 0.5, y - 10); ctx.lineTo(x + w, y + h * 0.3);
                     ctx.fill();
-                    // Bells
                     ctx.fillStyle = '#d4af37';
                     ctx.beginPath();
                     ctx.arc(x, y + h * 0.3, 4, 0, Math.PI * 2);
                     ctx.arc(x + w * 0.5, y - 10, 4, 0, Math.PI * 2);
                     ctx.arc(x + w, y + h * 0.3, 4, 0, Math.PI * 2);
                     ctx.fill();
-                    // Daggers
                     ctx.fillStyle = '#98c379';
                     ctx.fillRect(x - 10, y + h * 0.4, 12, 4);
                     ctx.fillRect(x + w, y + h * 0.4, 12, 4);
                     break;
-
-                case 2: // KORG: Pit-Beast (Hunched Quadrupedal Beast, Horns, Chains)
+                case 2:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#334e54';
-                    ctx.fillRect(x, y + h * 0.2, w * 0.9, h * 0.8); // Hunched Body
-                    // Massive Back Spikes
+                    ctx.fillRect(x, y + h * 0.2, w * 0.9, h * 0.8);
                     ctx.fillStyle = '#1c2c38';
                     for(let i=0; i<3; i++) {
                         ctx.beginPath();
                         ctx.moveTo(x + i*12, y + h*0.2); ctx.lineTo(x + i*12 + 6, y - 6); ctx.lineTo(x + i*12 + 12, y + h*0.2);
                         ctx.fill();
                     }
-                    // Head Jaws
                     ctx.fillStyle = '#e06c75';
                     ctx.fillRect(x - 10, y + h * 0.3, 15, h * 0.3);
-                    // Chains
                     ctx.strokeStyle = '#b89768';
                     ctx.lineWidth = 2;
                     ctx.beginPath(); ctx.arc(x + w*0.4, y + h*0.5, 12, 0, Math.PI); ctx.stroke();
                     break;
-
-                case 3: // LADY ISOLDA: Executioner (Tall Hood, Long Cloak, Huge Scythe)
-                    ctx.fillStyle = isCharging ? '#e06c75' : '#1e140e';
-                    // Flowing Cloak
+                case 3:
+                    ctx.fillStyle = '#1e140e';
                     ctx.beginPath();
                     ctx.moveTo(x + w*0.5, y); ctx.lineTo(x - 10, y + h); ctx.lineTo(x + w + 10, y + h);
                     ctx.fill();
-                    // Executioner Hood
                     ctx.fillStyle = '#54333b';
                     ctx.fillRect(x + w * 0.3, y, w * 0.4, h * 0.25);
-                    // Glowing Red Eye Slit
                     ctx.fillStyle = '#e06c75';
                     ctx.fillRect(x + w * 0.35, y + 8, w * 0.3, 3);
-                    // Huge Scythe
                     ctx.strokeStyle = '#8a6f52';
                     ctx.lineWidth = 3;
                     ctx.beginPath(); ctx.moveTo(x + w + 5, y - 15); ctx.lineTo(x + w + 5, y + h); ctx.stroke();
                     ctx.fillStyle = '#e0d0c0';
                     ctx.beginPath(); ctx.moveTo(x + w + 5, y - 15); ctx.lineTo(x + w - 30, y - 5); ctx.lineTo(x + w + 5, y); ctx.fill();
                     break;
-
-                case 4: // MALAKOR: One-Eyed Brute (Giant Shoulder Spike, Single Glowing Eye, Mace)
+                case 4:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#4a5433';
                     ctx.fillRect(x + w * 0.1, y + h * 0.2, w * 0.8, h * 0.8);
-                    // Giant Left Pauldron
                     ctx.fillStyle = '#d4af37';
                     ctx.fillRect(x - 8, y + h * 0.15, w * 0.4, h * 0.3);
-                    // ONE Giant Central Eye
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.1, 9, 0, Math.PI * 2); ctx.fill();
                     ctx.fillStyle = '#e06c75';
                     ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.1, 4, 0, Math.PI * 2); ctx.fill();
-                    // Spiked Mace
                     ctx.fillStyle = '#543d2b';
                     ctx.fillRect(x + w, y + h * 0.3, 20, 8);
                     break;
-
-                case 5: // DRAKUL: Ash-Crowned Brute (Volcanic Fiery Core, Crown of Fire, Lava Axe)
+                case 5:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#2b140e';
                     ctx.fillRect(x + w * 0.1, y + h * 0.2, w * 0.8, h * 0.8);
-                    // Lava Cracks
                     ctx.fillStyle = '#ffe599';
                     ctx.fillRect(x + w * 0.3, y + h * 0.35, w * 0.4, h * 0.4);
-                    // Crown of Fire
                     ctx.fillStyle = '#d4af37';
                     for(let i=0; i<4; i++) {
                         ctx.fillRect(x + w*0.2 + i*8, y - 8, 4, 12);
                     }
-                    // Double Battle Axe
                     ctx.fillStyle = '#e06c75';
                     ctx.fillRect(x + w, y + h * 0.1, 15, h * 0.6);
                     break;
-
-                case 6: // VARIS: Warden (Heavy Knight Armor, Visor Helm, Tower Shield, Halberd)
+                case 6:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#3d3d3d';
                     ctx.fillRect(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.8);
-                    // Tower Shield
                     ctx.fillStyle = '#b89768';
                     ctx.fillRect(x - 12, y + h * 0.1, 16, h * 0.85);
                     ctx.strokeStyle = '#d4af37'; ctx.strokeRect(x - 12, y + h * 0.1, 16, h * 0.85);
-                    // Visor Slit
                     ctx.fillStyle = '#ffe599';
                     ctx.fillRect(x + w * 0.35, y + h * 0.08, w * 0.3, 3);
                     break;
-
-                case 7: // MORVATH: Sovereign (Floating Spectral Blades, Sharp Geometric Armor)
+                case 7:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#2b3354';
                     ctx.fillRect(x + w * 0.2, y + h * 0.15, w * 0.6, h * 0.7);
-                    // Floating Telekinetic Blades
                     ctx.fillStyle = '#61afef';
                     let floatOff = Math.sin(Date.now()/150) * 8;
                     ctx.fillRect(x - 18, y + floatOff, 6, 25);
                     ctx.fillRect(x + w + 12, y - floatOff, 6, 25);
                     break;
-
-                case 8: // VALERIUS: Dread Monarch (Regal Royal Cape, Multi-Tier Gold Crown, Scepter)
-                    // Royal Cape
+                case 8:
                     ctx.fillStyle = '#be5046';
                     ctx.fillRect(x - 8, y + h * 0.2, w + 16, h * 0.8);
-                    // Armor
                     ctx.fillStyle = '#d4af37';
                     ctx.fillRect(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.75);
-                    // Golden Crown
                     ctx.beginPath();
                     ctx.moveTo(x + w*0.1, y); ctx.lineTo(x + w*0.3, y + h*0.18);
                     ctx.lineTo(x + w*0.5, y - 6); ctx.lineTo(x + w*0.7, y + h*0.18); ctx.lineTo(x + w*0.9, y);
                     ctx.fill();
-                    // Scepter
                     ctx.fillStyle = '#ffe599';
                     ctx.fillRect(x + w + 4, y + h * 0.1, 6, h * 0.8);
                     ctx.beginPath(); ctx.arc(x + w + 7, y + h * 0.1, 7, 0, Math.PI * 2); ctx.fill();
                     break;
-
-                case 9: // MODRED: The First Fool (Shadow Phantom, Cyan Glowing Eyes, Twin Blades)
+                case 9:
                     ctx.fillStyle = isCharging ? '#e06c75' : '#120d09';
                     ctx.fillRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.9);
-                    // Tattered Shadow Cloak Edge
                     ctx.fillStyle = '#3d2b1f';
                     for(let i=0; i<5; i++) {
                         ctx.fillRect(x + i*8, y + h - 4, 6, 8);
                     }
-                    // Cyan Phantom Eyes
                     ctx.fillStyle = '#61afef';
                     ctx.fillRect(x + w * 0.3, y + h * 0.2, 5, 4);
                     ctx.fillRect(x + w * 0.6, y + h * 0.2, 5, 4);
-                    // Dual Phantom Blades
-                    ctx.fillStyle = '#61afef';
                     ctx.fillRect(x - 10, y + h * 0.3, 12, 4);
                     ctx.fillRect(x + w, y + h * 0.3, 12, 4);
                     break;
@@ -1465,21 +1294,6 @@
             let distanceToPlayer = Math.abs(boss.x - player.x);
             let verticalDistance = Math.abs(boss.y - player.y);
 
-            // DETERMINE ACTIVE MOVESET ACCORDING TO RULES:
-            // Level 1 Phase 1 = Simple attack (null moveset)
-            // Level N Phase 1 = Phase 2 of previous boss (bossMovesets[level - 2])
-            // Level N Phase 2 = Phase 2 of current boss (bossMovesets[level - 1])
-            let activeMoveset = null;
-            if (stats.level === 1) {
-                if (boss.phase2Triggered) activeMoveset = bossMovesets[0];
-            } else {
-                if (boss.phase2Triggered) {
-                    activeMoveset = bossMovesets[stats.level - 1];
-                } else {
-                    activeMoveset = bossMovesets[stats.level - 2];
-                }
-            }
-
             if (boss.state === 'IDLE') {
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
@@ -1504,19 +1318,10 @@
                     boss.isGrounded = false;
                 }
 
-                let speedDivisor = boss.phase2Triggered ? 1.25 : 1;
-                let attackThreshold = activeMoveset ? 140 : 120;
-                if (distanceToPlayer < attackThreshold && verticalDistance < 65 && boss.attackCooldown > Math.max(25, (75 - stats.wins * 5) / speedDivisor)) {
+                let speedDivisor = boss.hasSecondWeapon ? 1.25 : 1;
+                if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(30, (80 - stats.wins * 5) / speedDivisor)) {
                     boss.state = 'CHARGING';
-                    
-                    if (activeMoveset && activeMoveset.length > 0) {
-                        boss.currentAttack = activeMoveset[Math.floor(Math.random() * activeMoveset.length)];
-                        boss.telegraphTimer = Math.max(10, boss.currentAttack.telegraph / speedDivisor);
-                    } else {
-                        boss.currentAttack = null;
-                        boss.telegraphTimer = Math.max(15, (35 - stats.wins * 2) / speedDivisor);
-                    }
-
+                    boss.telegraphTimer = Math.max(15, (35 - stats.wins * 2) / speedDivisor);
                     boss.attackCooldown = 0;
                     boss.hasDealtDamage = false; 
                 }
@@ -1525,12 +1330,7 @@
                 boss.telegraphTimer--;
                 if (boss.telegraphTimer <= 0) {
                     boss.state = 'ATTACKING';
-                    let rushSpeed = boss.currentAttack ? boss.currentAttack.speed : 11;
-                    if (boss.currentAttack && boss.currentAttack.type === 'leap') {
-                        boss.vy = boss.jumpForce * 1.3;
-                        boss.isGrounded = false;
-                    }
-                    boss.vx = (player.x > boss.x ? 1 : -1) * (rushSpeed * boss.speedMultiplier);
+                    boss.vx = (player.x > boss.x ? 1 : -1) * (11 * boss.speedMultiplier);
                 }
             } 
             else if (boss.state === 'DODGING') {
@@ -1554,8 +1354,7 @@
                         spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 'spark', 6);
 
                         let baseDmg = 100 / 5;
-                        let attackDmgMultiplier = boss.currentAttack ? boss.currentAttack.damageMultiplier : 1.0;
-                        let damageToPlayer = baseDmg * Math.pow(2, stats.wins) * attackDmgMultiplier;
+                        let damageToPlayer = baseDmg * Math.pow(2, stats.wins);
                         
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
@@ -1572,10 +1371,9 @@
                     boss.vx *= 0.82;
                     if (Math.abs(boss.vx) < 0.5) {
                         boss.vx = 0;
-                        if (boss.phase2Triggered && boss.comboCount < 1 && activeMoveset) {
+                        if (boss.hasSecondWeapon && boss.comboCount < 1) {
                             boss.comboCount++;
                             boss.state = 'CHARGING';
-                            boss.currentAttack = activeMoveset[Math.floor(Math.random() * activeMoveset.length)];
                             boss.telegraphTimer = 12; 
                             boss.hasDealtDamage = false;
                         } else {
@@ -1712,7 +1510,6 @@
                 ctx.restore();
             });
 
-            // Player Render
             ctx.save();
             ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
             ctx.rotate(player.rotation);
@@ -1738,17 +1535,15 @@
             }
             ctx.restore();
 
-            // BOSS RENDER (WITH UNIQUE CANVAS MODELS)
             ctx.save();
             ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
             ctx.rotate(boss.rotation || 0);
             ctx.translate(-(boss.x + boss.width / 2), -(boss.y + boss.height / 2));
 
             let bIndex = Math.min(stats.level - 1, 9);
-            drawUniqueBossModel(bIndex, boss.x, boss.y, boss.width, boss.height, boss.state, boss.phase2Triggered);
+            drawUniqueBossModel(bIndex, boss.x, boss.y, boss.width, boss.height, boss.state, boss.hasSecondWeapon);
             ctx.restore();
 
-            // 4-SECOND BOSS INTRO OVERLAY
             if (gameState === 'BOSS_INTRO') {
                 const t = translations[currentLang];
                 let bIndex = Math.min(stats.level - 1, 9);
@@ -1780,7 +1575,6 @@
                 ctx.textAlign = 'left';
             }
 
-            // PHASE 2 CUTSCENE ANIMATION
             if (gameState === 'PHASE2_CUTSCENE') {
                 ctx.fillStyle = 'rgba(18, 13, 9, 0.75)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1812,12 +1606,10 @@
                 ctx.fillText(t.phase2Title, canvas.width / 2, canvas.height / 2 - 25);
                 ctx.fillStyle = '#b89768';
                 ctx.font = '12px sans-serif';
-                let activeMovesetName = boss.currentAttack ? boss.currentAttack.name : "Unique Moveset";
-                ctx.fillText(`${t.phase2Desc} [${activeMovesetName}]`, canvas.width / 2, canvas.height / 2 + 5);
+                ctx.fillText(t.phase2Desc, canvas.width / 2, canvas.height / 2 + 5);
                 ctx.textAlign = 'left';
             }
 
-            // UI Bars
             const t = translations[currentLang];
             ctx.fillStyle = '#21160f';
             ctx.fillRect(15, 15, 130, 10);
@@ -1832,17 +1624,15 @@
             ctx.fillStyle = player.stamina <= 0 ? '#61afef' : '#d4af37';
             ctx.fillRect(15, 28, Math.min(90, (player.stamina / player.maxStamina) * 90), 6);
 
-            // Boss HP & Name
             ctx.fillStyle = '#21160f';
             ctx.fillRect(canvas.width - 145, 15, 130, 10);
-            ctx.fillStyle = boss.phase2Triggered ? '#e06c75' : '#be5046';
+            ctx.fillStyle = boss.hasSecondWeapon ? '#e06c75' : '#be5046';
             ctx.fillRect(canvas.width - 145, 15, Math.max(0, (boss.hp / boss.maxHp) * 130), 10);
             
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'right';
             let currentBossName = bossNames[Math.min(stats.level - 1, 9)];
-            let moveIndicator = boss.currentAttack ? ` [${boss.currentAttack.name}]` : '';
-            ctx.fillText(`${currentBossName}${boss.phase2Triggered ? ' (P2)' : ''}${moveIndicator}`, canvas.width - 15, 11);
+            ctx.fillText(`${currentBossName}${boss.hasSecondWeapon ? ' (P2)' : ''}`, canvas.width - 15, 11);
             ctx.textAlign = 'left';
 
             ctx.restore();
