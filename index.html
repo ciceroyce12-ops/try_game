@@ -65,9 +65,9 @@
         }
         #overlay-screen h2 {
             margin: 0 0 20px 0;
-            font-size: 1.8rem;
-            color: #98c379;
-            text-shadow: 0 0 15px rgba(152, 195, 121, 0.5);
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(224, 108, 117, 0.5);
         }
         #overlay-screen p {
             margin: 0 0 20px 0;
@@ -159,11 +159,11 @@
             deaths: 0
         };
 
-        let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, VICTORY
+        let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, DEATH, VICTORY
         const groundLevel = 290;
         const platform = {
             x: 180,
-            y: 175,
+            y: 205,
             width: 440,
             height: 12
         };
@@ -216,7 +216,10 @@
         // Input Listeners (Keyboard)
         window.addEventListener('keydown', e => {
             if (gameState !== 'PLAYING') {
-                if (e.key === 'Enter' && gameState === 'WIN_PAUSE') resumeGame();
+                if (e.key === 'Enter') {
+                    if (gameState === 'WIN_PAUSE') resumeGame();
+                    else if (gameState === 'DEATH') restartGameAfterDeath();
+                }
                 return;
             }
             if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
@@ -238,7 +241,14 @@
         document.getElementById('btn-jump').addEventListener('click', () => { if(gameState==='PLAYING') triggerJump(); });
         document.getElementById('btn-dodge').addEventListener('click', () => { if(gameState==='PLAYING') triggerDodge(); });
         document.getElementById('btn-attack').addEventListener('click', () => { if(gameState==='PLAYING') triggerAttack(); });
-        btnContinue.addEventListener('click', resumeGame);
+        
+        btnContinue.addEventListener('click', () => {
+            if (gameState === 'WIN_PAUSE') {
+                resumeGame();
+            } else if (gameState === 'DEATH') {
+                restartGameAfterDeath();
+            }
+        });
 
         function triggerJump() {
             if (player.isGrounded && !player.isDodging && player.stamina >= 10) {
@@ -273,7 +283,6 @@
                 
                 if (hitBoxX < boss.x + boss.width && hitBoxX + hitBoxWidth > boss.x &&
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
-                    // Melee Damage (Double the laser damage)
                     let laserDmg = 15 + stats.level * 3;
                     let meleeDmg = laserDmg * 2;
                     boss.hp -= meleeDmg;
@@ -312,6 +321,8 @@
 
             gameState = 'WIN_PAUSE';
             overlayTitle.innerText = `Level ${stats.wins} beaten, continue ?`;
+            overlayTitle.style.color = "#98c379";
+            btnContinue.innerText = "CONTINUE";
             overlayCredit.style.display = "none";
             btnContinue.style.display = "block";
             overlayScreen.style.display = "flex";
@@ -338,7 +349,21 @@
 
         function handleDeath() {
             stats.deaths++;
+            deathDisplay.innerText = stats.deaths;
+
+            gameState = 'DEATH';
+            overlayTitle.innerText = "YOU DIE";
+            overlayTitle.style.color = "#e06c75";
+            btnContinue.innerText = "TRY AGAIN?";
+            overlayCredit.style.display = "none";
+            btnContinue.style.display = "block";
+            overlayScreen.style.display = "flex";
+        }
+
+        function restartGameAfterDeath() {
+            overlayScreen.style.display = "none";
             player.hp = player.maxHp;
+            player.stamina = player.maxStamina;
             player.x = 100;
             player.y = groundLevel - player.height;
             player.vy = 0;
@@ -348,9 +373,9 @@
             boss.vy = 0;
             boss.state = 'IDLE';
             boss.hasDealtDamage = false;
-            deathDisplay.innerText = stats.deaths;
             player.comboCount = 0;
             comboDisplay.innerText = player.comboCount;
+            gameState = 'PLAYING';
         }
 
         function applyPhysics(entity) {
@@ -522,8 +547,8 @@
 
             // Background Atmospheric Details
             ctx.fillStyle = '#171821';
-            ctx.fillRect(120, 100, 30, 190);
-            ctx.fillRect(450, 80, 35, 210);
+            ctx.fillRect(120, 120, 30, 170);
+            ctx.fillRect(450, 100, 35, 190);
             
             // --- DRAW PLATFORM (2nd Floor) ---
             ctx.fillStyle = '#21252b';
