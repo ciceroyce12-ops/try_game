@@ -162,21 +162,21 @@
         let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, DEATH, VICTORY
         const groundLevel = 290;
         const platform = {
-            x: 180,
-            y: 205,
-            width: 440,
+            x: 140,
+            y: 225,
+            width: 520,
             height: 12
         };
 
         const player = {
             x: 100,
-            y: groundLevel - 40,
+            y: groundLevel - 42,
             width: 28,
             height: 42,
             speed: 4.5,
             vy: 0,
             gravity: 0.55,
-            jumpForce: -11,
+            jumpForce: -12.5,
             isGrounded: true,
             hp: 100,
             maxHp: 100,
@@ -387,9 +387,9 @@
             let feetPrev = prevY + entity.height;
             let feetCurr = entity.y + entity.height;
 
-            // Platform collision (one-way: only land from above when falling)
+            // Platform collision (one-way: land from above when falling)
             if (entity.vy >= 0 && 
-                feetPrev <= platform.y && 
+                feetPrev <= platform.y + 6 && 
                 feetCurr >= platform.y && 
                 entity.x + entity.width > platform.x && 
                 entity.x < platform.x + platform.width) {
@@ -489,7 +489,7 @@
                 // Boss jump to platform if player is on it and boss is below
                 if (player.y < groundLevel - player.height - 20 && boss.isGrounded && verticalDistance > 30) {
                     if (Math.abs(boss.x - player.x) < 200 && boss.x > platform.x && boss.x < platform.x + platform.width && Math.random() < 0.06) {
-                        boss.vy = -11;
+                        boss.vy = -12;
                         boss.isGrounded = false;
                     }
                 }
@@ -547,8 +547,8 @@
 
             // Background Atmospheric Details
             ctx.fillStyle = '#171821';
-            ctx.fillRect(120, 120, 30, 170);
-            ctx.fillRect(450, 100, 35, 190);
+            ctx.fillRect(120, 140, 30, 150);
+            ctx.fillRect(450, 120, 35, 170);
             
             // --- DRAW PLATFORM (2nd Floor) ---
             ctx.fillStyle = '#21252b';
