@@ -320,7 +320,7 @@
             if (boss.hp <= boss.maxHp * 0.5 && !boss.phase2Triggered) {
                 boss.phase2Triggered = true;
                 boss.hasSecondWeapon = true;
-                boss.speedMultiplier *= 1.5; 
+                boss.speedMultiplier *= 1.25; // Phase 2 speed increase set to +25%
                 gameState = 'PHASE2_CUTSCENE';
                 cutsceneTimer = 120; 
             }
@@ -455,12 +455,12 @@
             upgradeOptions.style.display = "none";
 
             const tutorialQuotes = [
-                "💡 **Colosseum Tip:** When the boss drops to 50% HP, Phase 2 awakens with dual weapons and +50% speed!",
-                "💡 **Colosseum Tip:** Time your dodge roll correctly to phase through incoming boss charges without taking damage.",
-                "💡 **Colosseum Tip:** Land 4 consecutive attacks on the boss to automatically shoot a powerful ranged laser beam!",
-                "💡 **Colosseum Tip:** Watch your stamina bar! Running out completely disables jumps and dodges.",
-                "💡 **Colosseum Tip:** Use the tiered pyramid platforms to jump over the boss when it corners you.",
-                "💡 **Colosseum Tip:** Want to send bug reports or feedback? Check out Ciceroyce's contact page: <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>https://ciceroyce12-ops.github.io/Contact_Me/</a>"
+                "💡 **Pro Tip:** When the boss drops to 50% HP, Phase 2 awakens with dual weapons and +25% speed!",
+                "💡 **Pro Tip:** Time your dodge roll correctly to phase through incoming boss charges without taking damage.",
+                "💡 **Pro Tip:** Land 4 consecutive attacks on the boss to automatically shoot a powerful ranged laser beam!",
+                "💡 **Pro Tip:** Watch your stamina bar! Running out completely disables jumps and dodges.",
+                "💡 **Pro Tip:** Use the tiered pyramid platforms to jump over the boss when it corners you.",
+                "💡 **Pro Tip:** Want to send bug reports or feedback? Check out Ciceroyce's contact page: <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>https://ciceroyce12-ops.github.io/Contact_Me/</a>"
             ];
 
             const randomQuote = tutorialQuotes[Math.floor(Math.random() * tutorialQuotes.length)];
@@ -686,9 +686,10 @@
                     }
                 }
 
-                if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(30, (80 - stats.wins * 5) / (boss.hasSecondWeapon ? 1.5 : 1))) {
+                let speedDivisor = boss.hasSecondWeapon ? 1.25 : 1;
+                if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(30, (80 - stats.wins * 5) / speedDivisor)) {
                     boss.state = 'CHARGING';
-                    boss.telegraphTimer = Math.max(15, (35 - stats.wins * 2) / (boss.hasSecondWeapon ? 1.5 : 1));
+                    boss.telegraphTimer = Math.max(15, (35 - stats.wins * 2) / speedDivisor);
                     boss.attackCooldown = 0;
                     boss.hasDealtDamage = false; 
                 }
@@ -749,7 +750,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // --- HOLLOW KNIGHT COLOSSEUM OF FOOLS STYLE BACKGROUND ---
-            // Warm sepia/golden gradient atmosphere
             let bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             bgGradient.addColorStop(0, '#2b1e14');
             bgGradient.addColorStop(0.5, '#1d140e');
@@ -796,16 +796,13 @@
             let bounce = (crowdCheerTimer > 0) ? Math.sin(Date.now() / 50) * 4 : 0;
             for (let yPos = 65; yPos < 95; yPos += 14) {
                 for (let xPos = 90; xPos < canvas.width - 80; xPos += 18) {
-                    // Skip center area for the crest
                     if (xPos > canvas.width / 2 - 35 && xPos < canvas.width / 2 + 25 && yPos < 80) continue;
                     
                     let headBounce = yPos === 65 ? bounce : -bounce;
-                    // Bug Mask/Head
                     ctx.fillStyle = '#c8b090';
                     ctx.beginPath();
                     ctx.arc(xPos, yPos + headBounce, 6, 0, Math.PI * 2);
                     ctx.fill();
-                    // Bug Hood/Wrappings
                     ctx.fillStyle = '#543d2b';
                     ctx.fillRect(xPos - 5, yPos + 3 + headBounce, 10, 5);
                 }
@@ -852,7 +849,7 @@
                 ctx.fillRect(laser.x, laser.y + 3, laser.width, 4);
             });
 
-            // --- DRAW CUSTOM PLAYER SPRITE (WITH FALL / TILT ROTATION) ---
+            // --- DRAW CUSTOM PLAYER SPRITE ---
             ctx.save();
             ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
             ctx.rotate(player.rotation);
@@ -867,28 +864,20 @@
             }
 
             if (gameState === 'DEATH_ANIMATION') {
-                ctx.fillStyle = '#e06c75'; // Ghostly red/grey on defeat
+                ctx.fillStyle = '#e06c75'; 
             } else if (player.stamina <= 0) {
                 ctx.fillStyle = '#d19a66'; 
             } else {
-                ctx.fillStyle = player.isAttacking ? '#d19a66' : '#e0d0c0'; // Hollow Knight white shell style
+                ctx.fillStyle = player.isAttacking ? '#d19a66' : '#e0d0c0'; 
             }
             
-            // Player Body / Cloak
             ctx.fillRect(pDrawX + 4, pDrawY + 14, 20, 22);
-            // Player Head / Horns
             ctx.fillStyle = '#e0d0c0';
             ctx.fillRect(pDrawX + 4, pDrawY + 2, 20, 14);
-            // Horns
             ctx.fillStyle = '#e0d0c0';
-            if (player.facing > 0) {
-                ctx.fillRect(pDrawX + 2, pDrawY - 6, 6, 10);
-                ctx.fillRect(pDrawX + 20, pDrawY - 6, 6, 10);
-            } else {
-                ctx.fillRect(pDrawX + 2, pDrawY - 6, 6, 10);
-                ctx.fillRect(pDrawX + 20, pDrawY - 6, 6, 10);
-            }
-            // Eyes (Hollow Knight mask eyes)
+            ctx.fillRect(pDrawX + 2, pDrawY - 6, 6, 10);
+            ctx.fillRect(pDrawX + 20, pDrawY - 6, 6, 10);
+
             ctx.fillStyle = '#120d09';
             let visorX = player.facing > 0 ? pDrawX + 13 : pDrawX + 7;
             ctx.fillRect(visorX, pDrawY + 6, 6, 4);
@@ -949,7 +938,7 @@
                 
                 ctx.fillStyle = '#b89768';
                 ctx.font = '14px sans-serif';
-                ctx.fillText("Boss speed & combo fury increased by 50%!", canvas.width / 2, canvas.height / 2 + 20);
+                ctx.fillText("Boss speed & combo fury increased by 25%!", canvas.width / 2, canvas.height / 2 + 20);
                 ctx.textAlign = 'left';
             }
 
