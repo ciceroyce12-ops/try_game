@@ -1130,7 +1130,8 @@
             ctx.fillRect(14, 20, 8, 4);
             ctx.fillRect(26, 20, 8, 4);
 
-            ctx.fillStyle = '#21160f';
+            // Both Boss Weapons Styled Red (#be5046 and #e06c75)
+            ctx.fillStyle = '#be5046';
             ctx.fillRect(boss.x > player.x ? -14 : 42, 25, 14, 35);
             if (boss.hasSecondWeapon) {
                 ctx.fillStyle = '#e06c75';
