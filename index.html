@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Colosseum Edition</title>
+    <title>Souls-Like Mini RPG - Colosseum Phase 2 Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -164,7 +164,7 @@
             <div id="upgrade-options" class="upgrade-container">
                 <button class="btn-upgrade" id="btn-dmg-up">⚔️ UPGRADE DAMAGE (+50%)</button>
                 <button class="btn-upgrade" id="btn-hp-up">🛡️ UPGRADE HEALTH (+50 Max HP & Heal)</button>
-                <button class="btn-upgrade" id="btn-stamina-up">⚡ UPGRADE STAMINA (+Max Stamina & Refill)</button>
+                <button class="btn-upgrade" id="btn-stamina-up">⚡ UPGRADE STAMINA (+5% & Refill)</button>
             </div>
             <div id="death-tutorial-text"></div>
             <button id="btn-restart">TRY AGAIN?</button>
@@ -200,8 +200,9 @@
             deaths: 0
         };
 
-        let gameState = 'PLAYING'; // PLAYING, WIN_DELAY, WIN_PAUSE, DEATH, VICTORY
+        let gameState = 'PLAYING'; // PLAYING, WIN_DELAY, WIN_PAUSE, PHASE2_CUTSCENE, DEATH, VICTORY
         let winDelayTimer = 0;
+        let cutsceneTimer = 0;
         let crowdCheerTimer = 0;
         const groundLevel = 290;
         
@@ -253,7 +254,10 @@
             vy: 0,
             gravity: 0.55,
             jumpForce: -9.2,
-            isGrounded: true
+            isGrounded: true,
+            phase2Triggered: false,
+            hasSecondWeapon: false,
+            comboCount: 0
         };
 
         let lasers = [];
@@ -309,6 +313,16 @@
             }
         }
 
+        function checkBossPhase2() {
+            if (boss.hp <= boss.maxHp * 0.5 && !boss.phase2Triggered) {
+                boss.phase2Triggered = true;
+                boss.hasSecondWeapon = true;
+                boss.speedMultiplier *= 1.5; // +50% overall speed boost
+                gameState = 'PHASE2_CUTSCENE';
+                cutsceneTimer = 120; // 2 seconds cutscene pause
+            }
+        }
+
         function triggerAttack() {
             if (player.stamina >= 20 && !player.isAttacking && !player.isDodging) {
                 player.facing = boss.x >= player.x ? 1 : -1;
@@ -329,9 +343,10 @@
                     let laserDmg = (15 + stats.level * 3) * player.damageMultiplier;
                     let meleeDmg = laserDmg * 2;
                     boss.hp -= meleeDmg;
+                    checkBossPhase2();
                     if (boss.hp <= 0 && gameState === 'PLAYING') {
                         gameState = 'WIN_DELAY';
-                        winDelayTimer = 120; // 2 second delay (at 60fps)
+                        winDelayTimer = 120; // 2 second delay
                     }
                 }
 
@@ -389,7 +404,7 @@
                 player.maxHp += 50;
                 player.hp = player.maxHp; 
             } else if (type === 'stamina') {
-                player.maxStamina = Math.round(player.maxStamina * 1.05 + 20);
+                player.maxStamina = Math.round(player.maxStamina * 1.05 + 15);
                 player.stamina = player.maxStamina;
             }
             resumeGame();
@@ -398,7 +413,7 @@
         function resumeGame() {
             overlayScreen.style.display = "none";
             stats.level++;
-            boss.speedMultiplier += 0.25;
+            boss.speedMultiplier = 1.0 + (stats.wins * 0.25);
             boss.maxHp = 300 * Math.pow(2, stats.wins);
             boss.hp = boss.maxHp;
             boss.x = 650;
@@ -406,6 +421,9 @@
             boss.vy = 0;
             boss.state = 'IDLE';
             boss.hasDealtDamage = false;
+            boss.phase2Triggered = false;
+            boss.hasSecondWeapon = false;
+            boss.comboCount = 0;
             
             player.hp = player.maxHp;
             player.x = 100;
@@ -425,7 +443,7 @@
             upgradeOptions.style.display = "none";
 
             const tutorialQuotes = [
-                "💡 **Tutorial Tip:** Keep moving! Standing still regenerates stamina quicker, but running helps you keep a safe distance from sudden boss dashes.",
+                "💡 **Tutorial Tip:** When the boss drops to 50% HP, it awakens Phase 2 with dual weapons, double attacks, and +50% speed!",
                 "💡 **Tutorial Tip:** Time your dodge roll correctly to phase through incoming boss charges without taking damage.",
                 "💡 **Tutorial Tip:** Land 4 consecutive attacks on the boss to automatically shoot a powerful ranged laser beam!",
                 "💡 **Tutorial Tip:** Watch your stamina bar! Running out completely makes you move very slowly and disables jumps and dodges.",
@@ -466,6 +484,9 @@
             boss.vy = 0;
             boss.state = 'IDLE';
             boss.hasDealtDamage = false;
+            boss.phase2Triggered = false;
+            boss.hasSecondWeapon = false;
+            boss.comboCount = 0;
 
             player.comboCount = 0;
             comboDisplay.innerText = player.comboCount;
@@ -502,6 +523,14 @@
         }
 
         function update() {
+            if (gameState === 'PHASE2_CUTSCENE') {
+                cutsceneTimer--;
+                if (cutsceneTimer <= 0) {
+                    gameState = 'PLAYING';
+                }
+                return;
+            }
+
             if (gameState === 'WIN_DELAY') {
                 winDelayTimer--;
                 if (winDelayTimer <= 0) {
@@ -542,6 +571,7 @@
                     laser.y < boss.y + boss.height && laser.y + laser.height > boss.y) {
                     let laserDmg = (15 + stats.level * 3) * player.damageMultiplier;
                     boss.hp -= laserDmg;
+                    checkBossPhase2();
                     lasers.splice(index, 1);
                     if (boss.hp <= 0 && gameState === 'PLAYING') {
                         gameState = 'WIN_DELAY';
@@ -618,9 +648,9 @@
                     }
                 }
 
-                if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(40, 80 - stats.wins * 5)) {
+                if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(30, (80 - stats.wins * 5) / (boss.hasSecondWeapon ? 1.5 : 1))) {
                     boss.state = 'CHARGING';
-                    boss.telegraphTimer = Math.max(20, 35 - stats.wins * 2);
+                    boss.telegraphTimer = Math.max(15, (35 - stats.wins * 2) / (boss.hasSecondWeapon ? 1.5 : 1));
                     boss.attackCooldown = 0;
                     boss.hasDealtDamage = false; 
                 }
@@ -652,8 +682,6 @@
                         
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
-                        
-                        // Trigger crowd cheers when boss lands a strike
                         crowdCheerTimer = 90;
 
                         if (player.hp <= 0) {
@@ -665,7 +693,16 @@
                     boss.vx *= 0.82;
                     if (Math.abs(boss.vx) < 0.5) {
                         boss.vx = 0;
-                        boss.state = 'IDLE';
+                        // Phase 2 Double-Strike Combo logic
+                        if (boss.hasSecondWeapon && boss.comboCount < 1) {
+                            boss.comboCount++;
+                            boss.state = 'CHARGING';
+                            boss.telegraphTimer = 12; // extremely fast second combo strike
+                            boss.hasDealtDamage = false;
+                        } else {
+                            boss.comboCount = 0;
+                            boss.state = 'IDLE';
+                        }
                     }
                 }
             }
@@ -675,20 +712,17 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // --- COLOSSEUM ARENA BACKGROUND ---
-            // Amphitheater tiers / structural background arches
             ctx.fillStyle = '#1c1821';
             ctx.fillRect(0, 45, canvas.width, 45);
             ctx.fillStyle = '#141118';
             ctx.fillRect(0, 90, canvas.width, 35);
 
-            // Arches pillars details
             ctx.strokeStyle = '#282230';
             ctx.lineWidth = 3;
             for (let px = 40; px < canvas.width; px += 80) {
                 ctx.strokeRect(px, 45, 40, 45);
             }
 
-            // Spectators (Viewers in the stands)
             const spectatorColors = ['#5c6370', '#e06c75', '#61afef', '#98c379', '#e5c07b', '#4b5263'];
             let jumpOffset = (crowdCheerTimer > 0) ? Math.sin(Date.now() / 60) * 3 : 0;
 
@@ -700,7 +734,6 @@
                 }
             }
 
-            // Cheering effects when crowd is hyped up
             if (crowdCheerTimer > 0) {
                 ctx.fillStyle = 'rgba(224, 108, 117, 0.25)';
                 ctx.font = 'bold 12px sans-serif';
@@ -780,7 +813,7 @@
             } else if (boss.state === 'DODGING') {
                 ctx.fillStyle = '#e5c07b'; 
             } else {
-                ctx.fillStyle = '#4b5263'; 
+                ctx.fillStyle = boss.hasSecondWeapon ? '#5c3d40' : '#4b5263'; 
             }
             ctx.fillRect(6, 12, 36, 53);
 
@@ -794,10 +827,33 @@
             ctx.fillRect(14, 20, 8, 4);
             ctx.fillRect(26, 20, 8, 4);
 
+            // Primary weapon
             ctx.fillStyle = '#21252b';
             ctx.fillRect(boss.x > player.x ? -14 : 42, 25, 14, 35);
 
+            // Second Weapon (Phase 2 Dual Wield)
+            if (boss.hasSecondWeapon) {
+                ctx.fillStyle = '#e06c75';
+                ctx.fillRect(boss.x > player.x ? 46 : -22, 20, 12, 40);
+            }
+
             ctx.restore();
+
+            // --- PHASE 2 CUTSCENE OVERLAY EFFECT ---
+            if (gameState === 'PHASE2_CUTSCENE') {
+                ctx.fillStyle = 'rgba(11, 11, 14, 0.75)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#e06c75';
+                ctx.font = 'bold 22px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("⚠️ PHASE 2: DUAL WEAPONS AWAKENED! ⚠️", canvas.width / 2, canvas.height / 2 - 10);
+                
+                ctx.fillStyle = '#61afef';
+                ctx.font = '14px sans-serif';
+                ctx.fillText("Boss speed & combo fury increased by 50%!", canvas.width / 2, canvas.height / 2 + 20);
+                ctx.textAlign = 'left';
+            }
 
             // --- UI BARS ---
             ctx.fillStyle = '#21252b';
@@ -815,10 +871,10 @@
 
             ctx.fillStyle = '#21252b';
             ctx.fillRect(canvas.width - 180, 20, 160, 12);
-            ctx.fillStyle = '#e06c75';
+            ctx.fillStyle = boss.hasSecondWeapon ? '#e06c75' : '#be5046';
             ctx.fillRect(canvas.width - 180, 20, Math.max(0, (boss.hp / boss.maxHp) * 160), 12);
             ctx.fillStyle = '#fff';
-            ctx.fillText(`BOSS HP (Tier ${stats.wins + 1})`, canvas.width - 150, 30);
+            ctx.fillText(`BOSS HP ${boss.hasSecondWeapon ? '(P2)' : ''}`, canvas.width - 150, 30);
         }
 
         function gameLoop() {
