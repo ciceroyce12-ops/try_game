@@ -229,7 +229,7 @@
         <canvas id="gameCanvas" width="800" height="350"></canvas>
         <div id="overlay-screen">
             <h2 id="overlay-title" style="color: #d4af37;">Colosseum of Fools</h2>
-            <p id="overlay-desc">Enter the arena and survive the champion trials.</p>
+            <p id="overlay-desc">Pilih bahasa / Select language:</p>
             
             <div id="lang-selector" class="lang-selector">
                 <button class="btn-lang active-lang" id="btn-lang-en" onclick="switchLanguage('en')">English</button>
@@ -238,12 +238,12 @@
 
             <div id="upgrade-options" class="upgrade-container">
                 <button class="btn-upgrade" id="btn-dmg-up" onclick="applyUpgrade('damage')">⚔️ UPGRADE DAMAGE (+50%)</button>
-                <button class="btn-upgrade" id="btn-hp-up" onclick="applyUpgrade('health')">🛡️ UPGRADE HEALTH (+50 HP & Heal)</button>
+                <button class="btn-upgrade" id="btn-hp-up" onclick="applyUpgrade('health')">🛡️ UPGRADE HP (+50 HP & Heal)</button>
                 <button class="btn-upgrade" id="btn-stamina-up" onclick="applyUpgrade('stamina')">⚡ UPGRADE STAMINA (+15 & Refill)</button>
             </div>
             <div id="death-tutorial-text"></div>
-            <button id="btn-action" onclick="handleActionButton()">START GAME</button>
-            <p id="overlay-credit" style="margin-top: 15px; font-size: 0.85rem; color: #8a6f52;">made by Ciceroyce</p>
+            <button id="btn-action" onclick="handleActionButton()">MAIN SEKARANG</button>
+            <p id="overlay-credit" style="margin-top: 15px; font-size: 0.85rem; color: #8a6f52;">dibuat sama Ciceroyce</p>
         </div>
     </div>
 
@@ -335,68 +335,68 @@
                 ]
             },
             id: {
-                title: "Koloseum Orang Bodoh",
-                startDesc: "Masuki arena dan bertahanlah dari ujian para juara.",
-                startBtn: "MULAI PERMAINAN",
-                winLegend: "ANDA MENANG - LEGENDA",
-                credit: "dibuat oleh Ciceroyce",
-                lblLvl: "Lev",
+                title: "Colosseum of Fools",
+                startDesc: "Masuki arena dan buktikan ketangguhan lu!",
+                startBtn: "MAIN SEKARANG",
+                winLegend: "MENANG - STATUS: LEGEND!",
+                credit: "dibuat sama Ciceroyce",
+                lblLvl: "Lvl",
                 lblWins: "Menang",
-                lblDeaths: "Mati",
-                lblCombo: "Kombo",
-                dmgUp: "⚔️ TINGKATKAN KERUSAKAN (+50%)",
-                hpUp: "🛡️ TINGKATKAN NYAWA (+50 HP & Pemulihan)",
-                staminaUp: "⚡ TINGKATKAN STAMINA (+15 & Pemulihan)",
+                lblDeaths: "Tumbang",
+                lblCombo: "Combo",
+                dmgUp: "⚔️ UPGRADE DAMAGE (+50%)",
+                hpUp: "🛡️ UPGRADE HP (+50 HP & Heal)",
+                staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
                 tryAgain: "COBA LAGI?",
                 youDie: "ANDA MATI",
-                phase2Title: "⚠️ FASE 2: SENJATA GANDA! ⚠️",
-                phase2Desc: "Kecepatan & amukan bos meningkat!",
-                desktopControls: "⌨️ <b>Kontrol:</b> Gerak: <b>A / D</b> atau <b>Tombol Panah</b> | Lompat: <b>W / Atas / Spasi</b> | Menghindar: <b>Shift</b> | Serang: <b>J / Enter</b>",
-                jumpBtn: "LOMPAT",
-                dodgeBtn: "HINDAR",
-                hitBtn: "SERANG",
-                hpText: "NYAWA",
-                bossText: "BOS",
-                bossP2: "BOS P2",
-                chooseEnhancement: "Pilih peningkatan Anda:",
-                lvlBeaten: (lvl) => `Level ${lvl} Terlewati!`,
+                phase2Title: "⚠️ PHASE 2: DUAL WEAPONS! ⚠️",
+                phase2Desc: "Boss makin ngebut dan brutal!",
+                desktopControls: "⌨️ <b>Kontrol:</b> Gerak: <b>A / D</b> atau <b>Arrow Keys</b> | Lompat: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Serang: <b>J / Enter</b>",
+                jumpBtn: "JUMP",
+                dodgeBtn: "DODGE",
+                hitBtn: "HIT",
+                hpText: "HP",
+                bossText: "BOSS",
+                bossP2: "BOSS P2",
+                chooseEnhancement: "Pilih buff buat upgrade:",
+                lvlBeaten: (lvl) => `Level ${lvl} Clear!`,
                 tutorialQuotes: [
-                    "💡 <b>Tips Pro:</b> Saat HP bos turun menjadi 50%, Fase 2 bangkit dengan senjata ganda dan +25% kecepatan!",
-                    "💡 <b>Tips Pro:</b> Waktu guliran menghindar (dodge) Anda dengan tepat untuk melewati serangan bos dengan aman.",
-                    "💡 <b>Tips Pro:</b> Daratkan 4 serangan beruntun untuk menembakkan sinar laser jarak jauh yang kuat!",
-                    "💡 <b>Tips Pro:</b> Perhatikan bar stamina Anda! Stamina habis akan melumpuhkan kecepatan gerak.",
-                    "💡 <b>Tips Pro:</b> Gunakan platform piramida untuk melompati serangan serudukan agresif.",
-                    "💡 <b>Tips Pro:</b> Ingin menghubungi atau melihat proyek saya? Kunjungi <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Halaman Kontak</a> saya!"
+                    "💡 <b>Tips Pro:</b> Pas HP boss sisa 50%, Phase 2 bakal aktif pake dual weapons dan kecepatan nambah 25%!",
+                    "💡 <b>Tips Pro:</b> Pas-in timing dodge lu biar bisa nembus serangan boss dengan aman tanpa kena hit.",
+                    "💡 <b>Tips Pro:</b> Kumpulin 4 combo hits berturut-turut buat nembak laser jarak jauh yang sakit banget!",
+                    "💡 <b>Tips Pro:</b> Perhatiin bar stamina! Kalau abis, karakter bakal lemes dan geraknya lambat.",
+                    "💡 <b>Tips Pro:</b> Manfaatin platform di atas buat ngehindar dari serudukan boss yang brutal.",
+                    "💡 <b>Tips Pro:</b> Mau ngobrol atau cek project gue yang lain? Kunjungi <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Halaman Kontak</a> gue ya!"
                 ],
                 mockDialogues: [
-                    "🗣️ 'HA HA HA! CACING MENYEDIHKAN!'",
-                    "🗣️ 'BANGUN ATAU LANGSUNG MATI!'",
-                    "🗣️ 'CUMA GITU? NENEK SAYA BERTARUNG LEBIH KERAS!'",
-                    "🗣️ 'MAKANAN MUDAH LAINNYA UNTUK ARENA!'",
-                    "🗣️ 'BUUUU! KELUAR DARI LANTAI!'",
-                    "🗣️ 'LIHAT DIA LIATAN! MENJIJIKKAN!'",
-                    "🗣️ 'RASAKAN ITU, BADUT!'",
-                    "🗣️ 'LANTAINYA BILANG HALO!'"
+                    "🗣️ 'HA HA HA! NOOB BANGET!'",
+                    "🗣️ 'BANGUN WOI, MALAH TIDUR DI SITU!'",
+                    "🗣️ 'CUMA GITU DOANG? NENEK GUE JUGA BISA!'",
+                    "🗣️ 'MAKANAN EMPUK BUAT ARENA!'",
+                    "🗣️ 'BOOOOO! JANGAN JADI BEBAN!'",
+                    "🗣️ 'GAYA DOANG JAGO, ASLINYA PANIK!'",
+                    "🗣️ 'RASAIN TUH, KENA TROLL BOSS!'",
+                    "🗣️ 'DAPET SALAM DARI LANTAI, WKWK!'"
                 ],
                 winDialogues: [
-                    "🗣️ 'TIDAK PERCAYA! JUARA BARU TELAH LAHIR?!'",
-                    "🗣️ 'DEMI PARA DEWA... SANG BEAST TELAH TUMBANG!'",
-                    "🗣️ 'SIAPA LEGENDA MUTLAK INI?!'",
-                    "🗣️ 'KEMULIAAN BAGI PAHLAWAN BARU KOLOSEUM!'",
-                    "🗣️ 'A-AKU TIDAK PERCAYA MATAKU... DIA MENANG?!'",
-                    "🗣️ 'SANG RAJA TELAH MATI! HIDUP SANG JUARA!'",
-                    "🗣️ 'KEJUTAN YANG GEMILANG! LUAR BIASA!'",
-                    "🗣️ 'MALAM INI KITA MAKAN SEPERTI RAJA! PERTARUNGAN HEBAT!'"
+                    "🗣️ 'GILAK SIH! ADA JUARA BARU NIH?!'",
+                    "🗣️ 'SUMPAH... BOSS-NYA TUMBANG JUGA!'",
+                    "🗣️ 'SIAPA SIH NIH ORANG, JAGO BANGET?!'",
+                    "🗣️ 'THE REAL HERO NIH, GOKIL ABIS!'",
+                    "🗣️ 'GUE GAK PERCAYA DIA BISA MENANG?!'",
+                    "🗣️ 'BOSS-NYA MATI! SALUTE BUAT JUARA BARU!'",
+                    "🗣️ 'COMBO-NYA GOKIL, EPIC WIN!'",
+                    "🗣️ 'MALAM INI KITA PESTA BESAR, GGWP!'"
                 ],
                 loseDialogues: [
-                    "🗣️ 'SATU LAGI JIWA DIAMBIL OLEH KELOMPOK BODOH!'",
-                    "🗣️ 'BERI MAKAN MAYATNYA KE ANJING PEMBURU!'",
-                    "🗣️ 'YAH, PERTUNJUKAN YANG SANGAT SINGKAT!'",
-                    "🗣️ 'SEBUAH KORBAN YANG MENGECEWAKAN!'",
-                    "🗣️ 'JATUH KE DEBU TEMPAT SEHARUSNYA ANDA BERADA!'",
-                    "🗣️ 'ISTIRAHATLAH DALAM KEPINGAN, BODOH!'",
-                    "🗣️ 'BUUU! PETARUNG YANG SANGAT BURUK!'",
-                    "🗣️ 'ARENA MENGAMBIL KORBAN LAINNYA!'"
+                    "🗣️ 'DAPET SALAM DARI LOBBY, WKWK!'",
+                    "🗣️ 'KASIH KE ANJING AJA TUH MAYATNYA!'",
+                    "🗣️ 'WADUH, SEKEJAP DOANG UDAH TUMBANG!'",
+                    "🗣️ 'PAYAH BANGET, KEBANYAKAN GAYA DOANG!'",
+                    "🗣️ 'BALIK LAGI KE LOBBY SANA, NOOB!'",
+                    "🗣️ 'REST IN PIECES, GAIS!'",
+                    "🗣️ 'BOOO! MAINNYA BEBAN BANGET!'",
+                    "🗣️ 'KORBAN KESEKIAN DI ARENA, WKWK!'"
                 ]
             }
         };
@@ -404,7 +404,7 @@
         function switchLanguage(lang) {
             currentLang = lang;
             document.getElementById('btn-lang-en').classList.toggle('active-lang', lang === 'en');
-            document.getElementById('btn-lang-id', lang).classList.toggle('active-lang', lang === 'id');
+            document.getElementById('btn-lang-id').classList.toggle('active-lang', lang === 'id');
 
             // Update static UI elements
             const t = translations[currentLang];
