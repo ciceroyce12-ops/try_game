@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Smart Boss & Laser Edition</title>
+    <title>Souls-Like Mini RPG - Tactical Balance Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -75,7 +75,7 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death: Tactical Edition</h1>
+        <h1>Trial by Death: Balanced Edition</h1>
         <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
@@ -210,8 +210,8 @@
                     }
                 }
 
-                // Shoot laser from afar on 4th attack IF boss has been successfully defeated at least once
-                if (stats.wins > 0 && player.comboCount >= 4) {
+                // Shoot laser from afar on every 4th attack (regardless of whether it hit or missed)
+                if (player.comboCount >= 4) {
                     lasers.push({
                         x: player.facing > 0 ? player.x + player.width : player.x - 20,
                         y: player.y + 14,
@@ -343,7 +343,6 @@
                 }
             } 
             else if (boss.state === 'CHARGING') {
-                // While charging/telegraphing, boss stands still or shifts slightly
                 boss.telegraphTimer--;
                 if (boss.telegraphTimer <= 0) {
                     boss.state = 'ATTACKING';
@@ -356,7 +355,11 @@
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
                     let isJumpingOver = player.y + player.height < boss.y + 25; 
                     if (!player.isDodging && !isJumpingOver) {
-                        player.hp -= (45 + stats.level * 6);
+                        // Level 1 = 10 hits to die (10 damage). Each win reduces allowed hits by 1 (down to min 2 hits).
+                        let allowedHits = Math.max(2, 10 - stats.wins);
+                        let damageToPlayer = player.maxHp / allowedHits;
+                        
+                        player.hp -= damageToPlayer;
                         if (player.hp <= 0) {
                             handleDeath();
                         }
