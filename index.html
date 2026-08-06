@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Victory Edition</title>
+    <title>Souls-Like Mini RPG - Platform Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -37,12 +37,57 @@
             color: #9da5b4;
             margin-top: 3px;
         }
+        .canvas-container {
+            position: relative;
+        }
         canvas {
             border: 3px solid #282c34;
             background: linear-gradient(to bottom, #121318, #1a1b24);
             box-shadow: 0 0 30px rgba(224, 108, 117, 0.15);
             max-width: 98vw;
             height: auto;
+            display: block;
+        }
+        /* Pause & Victory Overlay */
+        #overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 11, 14, 0.88);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 10;
+        }
+        #overlay-screen h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.8rem;
+            color: #98c379;
+            text-shadow: 0 0 15px rgba(152, 195, 121, 0.5);
+        }
+        #overlay-screen p {
+            margin: 0 0 20px 0;
+            font-size: 1.1rem;
+            color: #61afef;
+            text-shadow: 0 0 10px rgba(97, 175, 239, 0.4);
+        }
+        #btn-continue {
+            background-color: #98c379;
+            color: #0b0b0e;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(152, 195, 121, 0.4);
+        }
+        #btn-continue:active {
+            background-color: #7bc158;
         }
         .controls {
             display: grid;
@@ -75,11 +120,18 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death: Victory Edition</h1>
+        <h1>Trial by Death</h1>
         <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span>/10 | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
-    <canvas id="gameCanvas" width="800" height="350"></canvas>
+    <div class="canvas-container">
+        <canvas id="gameCanvas" width="800" height="350"></canvas>
+        <div id="overlay-screen">
+            <h2 id="overlay-title">Level 1 Beaten, Continue ?</h2>
+            <p id="overlay-credit" style="display:none;">made by Ciceroyce</p>
+            <button id="btn-continue">CONTINUE</button>
+        </div>
+    </div>
 
     <div class="controls">
         <button id="btn-left">←</button>
@@ -96,6 +148,10 @@
         const winDisplay = document.getElementById('win-display');
         const deathDisplay = document.getElementById('death-display');
         const comboDisplay = document.getElementById('combo-display');
+        const overlayScreen = document.getElementById('overlay-screen');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayCredit = document.getElementById('overlay-credit');
+        const btnContinue = document.getElementById('btn-continue');
 
         let stats = {
             level: 1,
@@ -103,8 +159,14 @@
             deaths: 0
         };
 
-        let gameState = 'PLAYING'; // PLAYING or VICTORY
+        let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, VICTORY
         const groundLevel = 290;
+        const platform = {
+            x: 180,
+            y: 175,
+            width: 440,
+            height: 12
+        };
 
         const player = {
             x: 100,
@@ -142,7 +204,10 @@
             calmTimer: 0,
             vx: 0,
             speedMultiplier: 1.0,
-            hasDealtDamage: false
+            hasDealtDamage: false,
+            vy: 0,
+            gravity: 0.55,
+            isGrounded: true
         };
 
         let lasers = [];
@@ -150,11 +215,14 @@
 
         // Input Listeners (Keyboard)
         window.addEventListener('keydown', e => {
-            if (gameState === 'VICTORY') return;
+            if (gameState !== 'PLAYING') {
+                if (e.key === 'Enter' && gameState === 'WIN_PAUSE') resumeGame();
+                return;
+            }
             if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
             if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
-            if (e.key === 'ArrowUp' || e.key === 'w') triggerJump();
-            if (e.key === ' ' || e.key === 'Shift') triggerDodge();
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') triggerJump();
+            if (e.code === 'ShiftLeft') triggerDodge();
             if (e.key === 'j' || e.key === 'Enter') triggerAttack();
         });
         window.addEventListener('keyup', e => {
@@ -170,6 +238,7 @@
         document.getElementById('btn-jump').addEventListener('click', () => { if(gameState==='PLAYING') triggerJump(); });
         document.getElementById('btn-dodge').addEventListener('click', () => { if(gameState==='PLAYING') triggerDodge(); });
         document.getElementById('btn-attack').addEventListener('click', () => { if(gameState==='PLAYING') triggerAttack(); });
+        btnContinue.addEventListener('click', resumeGame);
 
         function triggerJump() {
             if (player.isGrounded && !player.isDodging && player.stamina >= 10) {
@@ -204,7 +273,10 @@
                 
                 if (hitBoxX < boss.x + boss.width && hitBoxX + hitBoxWidth > boss.x &&
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
-                    boss.hp -= (15 + stats.level * 3);
+                    // Melee Damage (Double the laser damage)
+                    let laserDmg = 15 + stats.level * 3;
+                    let meleeDmg = laserDmg * 2;
+                    boss.hp -= meleeDmg;
                     if (boss.hp <= 0) {
                         handleWin();
                     }
@@ -228,34 +300,89 @@
             stats.wins++;
             winDisplay.innerText = stats.wins;
 
-            // Check for 10 Wins Victory Condition
             if (stats.wins >= 10) {
                 gameState = 'VICTORY';
+                overlayTitle.innerText = "YOU WIN";
+                overlayTitle.style.color = "#98c379";
+                overlayCredit.style.display = "block";
+                btnContinue.style.display = "none";
+                overlayScreen.style.display = "flex";
                 return;
             }
 
+            gameState = 'WIN_PAUSE';
+            overlayTitle.innerText = `Level ${stats.wins} beaten, continue ?`;
+            overlayCredit.style.display = "none";
+            btnContinue.style.display = "block";
+            overlayScreen.style.display = "flex";
+        }
+
+        function resumeGame() {
+            overlayScreen.style.display = "none";
             stats.level++;
             boss.speedMultiplier += 0.25;
             boss.maxHp = 300 + (stats.wins * 120);
             boss.hp = boss.maxHp;
             boss.x = 650;
+            boss.y = groundLevel - boss.height;
+            boss.vy = 0;
             boss.state = 'IDLE';
+            boss.hasDealtDamage = false;
+            player.hp = player.maxHp;
+            player.x = 100;
+            player.y = groundLevel - player.height;
+            player.vy = 0;
             lvlDisplay.innerText = stats.level;
+            gameState = 'PLAYING';
         }
 
         function handleDeath() {
             stats.deaths++;
             player.hp = player.maxHp;
             player.x = 100;
+            player.y = groundLevel - player.height;
+            player.vy = 0;
             boss.hp = boss.maxHp;
+            boss.x = 650;
+            boss.y = groundLevel - boss.height;
+            boss.vy = 0;
             boss.state = 'IDLE';
+            boss.hasDealtDamage = false;
             deathDisplay.innerText = stats.deaths;
             player.comboCount = 0;
             comboDisplay.innerText = player.comboCount;
         }
 
+        function applyPhysics(entity) {
+            entity.vy += entity.gravity;
+            entity.y += entity.vy;
+            entity.isGrounded = false;
+
+            let prevY = entity.y - entity.vy;
+            let feetPrev = prevY + entity.height;
+            let feetCurr = entity.y + entity.height;
+
+            // Platform collision (one-way: only land from above when falling)
+            if (entity.vy >= 0 && 
+                feetPrev <= platform.y && 
+                feetCurr >= platform.y && 
+                entity.x + entity.width > platform.x && 
+                entity.x < platform.x + platform.width) {
+                entity.y = platform.y - entity.height;
+                entity.vy = 0;
+                entity.isGrounded = true;
+            }
+
+            // Ground collision
+            if (entity.y >= groundLevel - entity.height) {
+                entity.y = groundLevel - entity.height;
+                entity.vy = 0;
+                entity.isGrounded = true;
+            }
+        }
+
         function update() {
-            if (gameState === 'VICTORY') return;
+            if (gameState !== 'PLAYING') return;
 
             let isMoving = (keys.left || keys.right) && !player.isDodging;
 
@@ -281,7 +408,8 @@
                 laser.x += laser.vx;
                 if (laser.x < boss.x + boss.width && laser.x + laser.width > boss.x &&
                     laser.y < boss.y + boss.height && laser.y + laser.height > boss.y) {
-                    boss.hp -= (30 + stats.level * 5);
+                    let laserDmg = 15 + stats.level * 3;
+                    boss.hp -= laserDmg;
                     lasers.splice(index, 1);
                     if (boss.hp <= 0) {
                         handleWin();
@@ -292,13 +420,8 @@
                 }
             });
 
-            player.vy += player.gravity;
-            player.y += player.vy;
-            if (player.y >= groundLevel - player.height) {
-                player.y = groundLevel - player.height;
-                player.vy = 0;
-                player.isGrounded = true;
-            }
+            // Apply Player Physics
+            applyPhysics(player);
 
             if (player.isDodging) {
                 player.x += player.facing * 8.5;
@@ -325,7 +448,11 @@
                 if (player.attackTimer <= 0) player.isAttacking = false;
             }
 
+            // Apply Boss Physics
+            applyPhysics(boss);
+
             let distanceToPlayer = Math.abs(boss.x - player.x);
+            let verticalDistance = Math.abs(boss.y - player.y);
 
             if (boss.state === 'IDLE') {
                 boss.attackCooldown++;
@@ -334,7 +461,15 @@
                 if (boss.x > player.x + 60) boss.x -= moveSpeed;
                 else if (boss.x < player.x - 60) boss.x += moveSpeed;
 
-                if (distanceToPlayer < 120 && boss.attackCooldown > Math.max(40, 80 - stats.wins * 5)) {
+                // Boss jump to platform if player is on it and boss is below
+                if (player.y < groundLevel - player.height - 20 && boss.isGrounded && verticalDistance > 30) {
+                    if (Math.abs(boss.x - player.x) < 200 && boss.x > platform.x && boss.x < platform.x + platform.width && Math.random() < 0.06) {
+                        boss.vy = -11;
+                        boss.isGrounded = false;
+                    }
+                }
+
+                if (distanceToPlayer < 120 && verticalDistance < 40 && boss.attackCooldown > Math.max(40, 80 - stats.wins * 5)) {
                     boss.state = 'CHARGING';
                     boss.telegraphTimer = Math.max(20, 35 - stats.wins * 2);
                     boss.attackCooldown = 0;
@@ -390,6 +525,18 @@
             ctx.fillRect(120, 100, 30, 190);
             ctx.fillRect(450, 80, 35, 210);
             
+            // --- DRAW PLATFORM (2nd Floor) ---
+            ctx.fillStyle = '#21252b';
+            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            ctx.strokeStyle = '#383a42';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+            ctx.strokeStyle = '#61afef';
+            ctx.beginPath();
+            ctx.moveTo(platform.x, platform.y);
+            ctx.lineTo(platform.x + platform.width, platform.y);
+            ctx.stroke();
+
             // Ground Floor
             ctx.strokeStyle = '#3b4252';
             ctx.lineWidth = 3;
@@ -488,31 +635,6 @@
             ctx.fillRect(canvas.width - 180, 20, Math.max(0, (boss.hp / boss.maxHp) * 160), 12);
             ctx.fillStyle = '#fff';
             ctx.fillText(`BOSS HP (Tier ${stats.wins + 1})`, canvas.width - 150, 30);
-
-            // --- VICTORY SCREEN OVERLAY ---
-            if (gameState === 'VICTORY') {
-                ctx.fillStyle = 'rgba(11, 11, 14, 0.9)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.textAlign = 'center';
-                
-                // You Win Text
-                ctx.fillStyle = '#98c379';
-                ctx.font = 'bold 48px sans-serif';
-                ctx.shadowColor = '#98c379';
-                ctx.shadowBlur = 25;
-                ctx.fillText('YOU WIN', canvas.width / 2, canvas.height / 2 - 25);
-
-                // Made by Ciceroyce Text
-                ctx.fillStyle = '#61afef';
-                ctx.font = '20px sans-serif';
-                ctx.shadowColor = '#61afef';
-                ctx.shadowBlur = 15;
-                ctx.fillText('made by Ciceroyce', canvas.width / 2, canvas.height / 2 + 30);
-
-                ctx.shadowBlur = 0;
-                ctx.textAlign = 'left';
-            }
         }
 
         function gameLoop() {
