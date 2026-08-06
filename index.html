@@ -349,8 +349,8 @@
                 staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
                 tryAgain: "TRY AGAIN?",
                 youDie: "YOU DIE",
-                phase2Title: "⚠️ PHASE 2: WEAPON THROWN BY CROWD! ⚠️",
-                phase2Desc: "Boss catches the second weapon & enrages!",
+                phase2Title: "⚠️ PHASE 2: UNIQUE MOVESET ACTIVATED! ⚠️",
+                phase2Desc: "Boss unleashes specialized 4-attack combat prowess!",
                 bossApproaching: "⚠️ ARENA CHAMPION APPROACHING ⚠️",
                 getReady: "GET READY TO FIGHT!",
                 desktopControls: "⌨️ <b>Controls:</b> Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>",
@@ -361,7 +361,7 @@
                 chooseEnhancement: "Choose your enhancement:",
                 lvlBeaten: (lvl) => `Level ${lvl} Beaten!`,
                 tutorialQuotes: [
-                    "💡 <b>Pro Tip:</b> When the boss drops to 50% HP, Phase 2 awakens with dual weapons and +25% speed!",
+                    "💡 <b>Pro Tip:</b> When the boss drops to 50% HP, Phase 2 awakens with unique movesets and increased aggression!",
                     "💡 <b>Pro Tip:</b> Time your dodge roll to phase through boss charges safely.",
                     "💡 <b>Pro Tip:</b> Land 4 consecutive hits to fire a powerful ranged laser beam!",
                     "💡 <b>Pro Tip:</b> Watch your stamina bar! Empty stamina disables movement speed.",
@@ -414,8 +414,8 @@
                 staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
                 tryAgain: "COBA LAGI?",
                 youDie: "ANDA MATI",
-                phase2Title: "⚠️ PHASE 2: SENJATA LEMPARAN PENONTON! ⚠️",
-                phase2Desc: "Boss nangkep senjata kedua dan ngamuk!",
+                phase2Title: "⚠️ PHASE 2: MOVESET UNIK DIAKTIFKAN! ⚠️",
+                phase2Desc: "Boss mengeluarkan keahlian bertarung 4-serangan khusus!",
                 bossApproaching: "⚠️ CHAMPION ARENA MEMASUKI ARENA ⚠️",
                 getReady: "BERSIAPLAH UNTUK BERTARUNG!",
                 desktopControls: "⌨️ <b>Kontrol:</b> Gerak: <b>A / D</b> atau <b>Arrow Keys</b> | Lompat: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Serang: <b>J / Enter</b>",
@@ -426,7 +426,7 @@
                 chooseEnhancement: "Pilih buff buat upgrade:",
                 lvlBeaten: (lvl) => `Level ${lvl} Clear!`,
                 tutorialQuotes: [
-                    "💡 <b>Tips Pro:</b> Pas HP boss sisa 50%, Phase 2 bakal aktif pake dual weapons dan kecepatan nambah 25%!",
+                    "💡 <b>Tips Pro:</b> Pas HP boss sisa 50%, Phase 2 bakal aktif pake moveset unik dan agresi meningkat!",
                     "💡 <b>Tips Pro:</b> Pas-in timing dodge lu biar bisa nembus serangan boss dengan aman tanpa kena hit.",
                     "💡 <b>Tips Pro:</b> Kumpulin 4 combo hits berturut-turut buat nembak laser jarak jauh yang sakit banget!",
                     "💡 <b>Tips Pro:</b> Perhatiin bar stamina! Kalau abis, karakter bakal lemes dan geraknya lambat.",
@@ -546,6 +546,82 @@
             "The First Fool, Modred"
         ];
 
+        // ==========================================
+        // 10 UNIQUE BOSS MOVESETS (EACH WITH EXACTLY 4 ATTACKS)
+        // ==========================================
+        const bossMovesets = [
+            // Boss 0 (Valen): Gladiator Phase 2
+            [
+                { name: "Shield Slam", speed: 9, telegraph: 28, type: "rush", damageMultiplier: 1.1 },
+                { name: "Ground Cleave", speed: 6, telegraph: 22, type: "leap", damageMultiplier: 1.25 },
+                { name: "Heavy Overhead", speed: 4, telegraph: 38, type: "heavy", damageMultiplier: 1.4 },
+                { name: "Gladiator Charge", speed: 12, telegraph: 16, type: "rush", damageMultiplier: 1.0 }
+            ],
+            // Boss 1 (Gideon): Jester Phase 2
+            [
+                { name: "Dagger Toss", speed: 8, telegraph: 15, type: "projectile", damageMultiplier: 1.1 },
+                { name: "Spin Slash", speed: 13, telegraph: 18, type: "spin", damageMultiplier: 1.2 },
+                { name: "Shadow Blink", speed: 15, telegraph: 12, type: "teleport_rush", damageMultiplier: 1.35 },
+                { name: "Jester Flurry", speed: 10, telegraph: 14, type: "multi_rush", damageMultiplier: 1.25 }
+            ],
+            // Boss 2 (Korg): Pit-Beast Phase 2
+            [
+                { name: "Seismic Stomp", speed: 5, telegraph: 35, type: "shockwave", damageMultiplier: 1.4 },
+                { name: "Beast Roar", speed: 0, telegraph: 25, type: "aoe_stun", damageMultiplier: 1.1 },
+                { name: "Pit Charge", speed: 14, telegraph: 20, type: "heavy_rush", damageMultiplier: 1.5 },
+                { name: "Ground Slam", speed: 7, telegraph: 30, type: "vertical_slam", damageMultiplier: 1.35 }
+            ],
+            // Boss 3 (Isolda): Executioner Phase 2
+            [
+                { name: "Scythe Sweep", speed: 10, telegraph: 20, type: "wide_sweep", damageMultiplier: 1.25 },
+                { name: "Shadow Dash", speed: 16, telegraph: 12, type: "ghost_rush", damageMultiplier: 1.45 },
+                { name: "Guillotine Drop", speed: 8, telegraph: 28, type: "air_drop", damageMultiplier: 1.6 },
+                { name: "Soul Pulse", speed: 6, telegraph: 22, type: "pulse", damageMultiplier: 1.2 }
+            ],
+            // Boss 4 (Malakor): One-Eyed Brute Phase 2
+            [
+                { name: "Eye Beam", speed: 0, telegraph: 25, type: "laser_beam", damageMultiplier: 1.5 },
+                { name: "Mace Smash", speed: 7, telegraph: 30, type: "heavy", damageMultiplier: 1.4 },
+                { name: "Shoulder Tackle", speed: 13, telegraph: 15, type: "rush", damageMultiplier: 1.25 },
+                { name: "Brute Leap", speed: 11, telegraph: 20, type: "leap_slam", damageMultiplier: 1.35 }
+            ],
+            // Boss 5 (Drakul): Ash-Crowned Brute Phase 2
+            [
+                { name: "Volcanic Eruption", speed: 0, telegraph: 30, type: "fire_pillars", damageMultiplier: 1.55 },
+                { name: "Lava Axe Slash", speed: 11, telegraph: 18, type: "fiery_sweep", damageMultiplier: 1.35 },
+                { name: "Ash Dash", speed: 17, telegraph: 10, type: "fire_rush", damageMultiplier: 1.45 },
+                { name: "Meteor Drop", speed: 9, telegraph: 35, type: "meteor_slam", damageMultiplier: 1.7 }
+            ],
+            // Boss 6 (Varis): Warden Phase 2
+            [
+                { name: "Tower Shield Bash", speed: 8, telegraph: 25, type: "shield_push", damageMultiplier: 1.3 },
+                { name: "Halberd Thrust", speed: 14, telegraph: 15, type: "long_thrust", damageMultiplier: 1.45 },
+                { name: "Gate Slam", speed: 6, telegraph: 30, type: "barrier_slam", damageMultiplier: 1.55 },
+                { name: "Warden Wrath", speed: 12, telegraph: 12, type: "multi_stab", damageMultiplier: 1.35 }
+            ],
+            // Boss 7 (Morvath): Sovereign Phase 2
+            [
+                { name: "Blade Barrage", speed: 5, telegraph: 20, type: "proj_barrage", damageMultiplier: 1.35 },
+                { name: "Sovereign Slash", speed: 12, telegraph: 18, type: "energy_slash", damageMultiplier: 1.45 },
+                { name: "Blade Orbit", speed: 8, telegraph: 15, type: "shield_spin", damageMultiplier: 1.25 },
+                { name: "Spectral Warp", speed: 16, telegraph: 10, type: "warp_strike", damageMultiplier: 1.6 }
+            ],
+            // Boss 8 (Valerius): Dread Monarch Phase 2
+            [
+                { name: "Royal Lightning", speed: 0, telegraph: 28, type: "lightning_strike", damageMultiplier: 1.65 },
+                { name: "Scepter Smash", speed: 9, telegraph: 22, type: "gold_shockwave", damageMultiplier: 1.45 },
+                { name: "Imperial Charge", speed: 15, telegraph: 14, type: "royal_rush", damageMultiplier: 1.55 },
+                { name: "Monarch Decree", speed: 7, telegraph: 32, type: "decree_wave", damageMultiplier: 1.75 }
+            ],
+            // Boss 9 (Modred): The First Fool Phase 2
+            [
+                { name: "Shadow Mirage", speed: 18, telegraph: 10, type: "mirage_dash", damageMultiplier: 1.7 },
+                { name: "Phantom Cross", speed: 14, telegraph: 15, type: "cross_slash", damageMultiplier: 1.6 },
+                { name: "Void Laser", speed: 0, telegraph: 25, type: "void_beam", damageMultiplier: 1.9 },
+                { name: "First Fool's Wrath", speed: 16, telegraph: 12, type: "ultimate_combo", damageMultiplier: 2.1 }
+            ]
+        ];
+
         const groundLevel = 290;
         const platforms = [
             { x: 140, y: 230, width: 520, height: 12 }, 
@@ -572,7 +648,7 @@
         const boss = {
             x: 650, y: 0, width: 42, height: 58, hp: 300, maxHp: 300, attackCooldown: 0, state: 'IDLE', 
             telegraphTimer: 0, dodgeTimer: 0, vx: 0, speedMultiplier: 1.0, hasDealtDamage: false, vy: 0, gravity: 0.55,
-            jumpForce: -9.2, isGrounded: true, phase2Triggered: false, hasSecondWeapon: false, comboCount: 0, rotation: 0
+            jumpForce: -9.2, isGrounded: true, phase2Triggered: false, hasSecondWeapon: false, comboCount: 0, rotation: 0, currentAttack: null
         };
 
         function updateBossSize() {
@@ -808,6 +884,7 @@
             boss.phase2Triggered = false;
             boss.hasSecondWeapon = false;
             boss.comboCount = 0;
+            boss.currentAttack = null;
             
             player.hp = player.maxHp;
             player.x = 100;
@@ -884,6 +961,7 @@
             boss.phase2Triggered = false;
             boss.hasSecondWeapon = false;
             boss.comboCount = 0;
+            boss.currentAttack = null;
 
             player.comboCount = 0;
             comboDisplay.innerText = player.comboCount;
@@ -1387,6 +1465,21 @@
             let distanceToPlayer = Math.abs(boss.x - player.x);
             let verticalDistance = Math.abs(boss.y - player.y);
 
+            // DETERMINE ACTIVE MOVESET ACCORDING TO RULES:
+            // Level 1 Phase 1 = Simple attack (null moveset)
+            // Level N Phase 1 = Phase 2 of previous boss (bossMovesets[level - 2])
+            // Level N Phase 2 = Phase 2 of current boss (bossMovesets[level - 1])
+            let activeMoveset = null;
+            if (stats.level === 1) {
+                if (boss.phase2Triggered) activeMoveset = bossMovesets[0];
+            } else {
+                if (boss.phase2Triggered) {
+                    activeMoveset = bossMovesets[stats.level - 1];
+                } else {
+                    activeMoveset = bossMovesets[stats.level - 2];
+                }
+            }
+
             if (boss.state === 'IDLE') {
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
@@ -1411,10 +1504,19 @@
                     boss.isGrounded = false;
                 }
 
-                let speedDivisor = boss.hasSecondWeapon ? 1.25 : 1;
-                if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(30, (80 - stats.wins * 5) / speedDivisor)) {
+                let speedDivisor = boss.phase2Triggered ? 1.25 : 1;
+                let attackThreshold = activeMoveset ? 140 : 120;
+                if (distanceToPlayer < attackThreshold && verticalDistance < 65 && boss.attackCooldown > Math.max(25, (75 - stats.wins * 5) / speedDivisor)) {
                     boss.state = 'CHARGING';
-                    boss.telegraphTimer = Math.max(15, (35 - stats.wins * 2) / speedDivisor);
+                    
+                    if (activeMoveset && activeMoveset.length > 0) {
+                        boss.currentAttack = activeMoveset[Math.floor(Math.random() * activeMoveset.length)];
+                        boss.telegraphTimer = Math.max(10, boss.currentAttack.telegraph / speedDivisor);
+                    } else {
+                        boss.currentAttack = null;
+                        boss.telegraphTimer = Math.max(15, (35 - stats.wins * 2) / speedDivisor);
+                    }
+
                     boss.attackCooldown = 0;
                     boss.hasDealtDamage = false; 
                 }
@@ -1423,7 +1525,12 @@
                 boss.telegraphTimer--;
                 if (boss.telegraphTimer <= 0) {
                     boss.state = 'ATTACKING';
-                    boss.vx = (player.x > boss.x ? 1 : -1) * (11 * boss.speedMultiplier);
+                    let rushSpeed = boss.currentAttack ? boss.currentAttack.speed : 11;
+                    if (boss.currentAttack && boss.currentAttack.type === 'leap') {
+                        boss.vy = boss.jumpForce * 1.3;
+                        boss.isGrounded = false;
+                    }
+                    boss.vx = (player.x > boss.x ? 1 : -1) * (rushSpeed * boss.speedMultiplier);
                 }
             } 
             else if (boss.state === 'DODGING') {
@@ -1447,7 +1554,8 @@
                         spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 'spark', 6);
 
                         let baseDmg = 100 / 5;
-                        let damageToPlayer = baseDmg * Math.pow(2, stats.wins);
+                        let attackDmgMultiplier = boss.currentAttack ? boss.currentAttack.damageMultiplier : 1.0;
+                        let damageToPlayer = baseDmg * Math.pow(2, stats.wins) * attackDmgMultiplier;
                         
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
@@ -1464,9 +1572,10 @@
                     boss.vx *= 0.82;
                     if (Math.abs(boss.vx) < 0.5) {
                         boss.vx = 0;
-                        if (boss.hasSecondWeapon && boss.comboCount < 1) {
+                        if (boss.phase2Triggered && boss.comboCount < 1 && activeMoveset) {
                             boss.comboCount++;
                             boss.state = 'CHARGING';
+                            boss.currentAttack = activeMoveset[Math.floor(Math.random() * activeMoveset.length)];
                             boss.telegraphTimer = 12; 
                             boss.hasDealtDamage = false;
                         } else {
@@ -1636,7 +1745,7 @@
             ctx.translate(-(boss.x + boss.width / 2), -(boss.y + boss.height / 2));
 
             let bIndex = Math.min(stats.level - 1, 9);
-            drawUniqueBossModel(bIndex, boss.x, boss.y, boss.width, boss.height, boss.state, boss.hasSecondWeapon);
+            drawUniqueBossModel(bIndex, boss.x, boss.y, boss.width, boss.height, boss.state, boss.phase2Triggered);
             ctx.restore();
 
             // 4-SECOND BOSS INTRO OVERLAY
@@ -1703,7 +1812,8 @@
                 ctx.fillText(t.phase2Title, canvas.width / 2, canvas.height / 2 - 25);
                 ctx.fillStyle = '#b89768';
                 ctx.font = '12px sans-serif';
-                ctx.fillText(t.phase2Desc, canvas.width / 2, canvas.height / 2 + 5);
+                let activeMovesetName = boss.currentAttack ? boss.currentAttack.name : "Unique Moveset";
+                ctx.fillText(`${t.phase2Desc} [${activeMovesetName}]`, canvas.width / 2, canvas.height / 2 + 5);
                 ctx.textAlign = 'left';
             }
 
@@ -1725,13 +1835,14 @@
             // Boss HP & Name
             ctx.fillStyle = '#21160f';
             ctx.fillRect(canvas.width - 145, 15, 130, 10);
-            ctx.fillStyle = boss.hasSecondWeapon ? '#e06c75' : '#be5046';
+            ctx.fillStyle = boss.phase2Triggered ? '#e06c75' : '#be5046';
             ctx.fillRect(canvas.width - 145, 15, Math.max(0, (boss.hp / boss.maxHp) * 130), 10);
             
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'right';
             let currentBossName = bossNames[Math.min(stats.level - 1, 9)];
-            ctx.fillText(`${currentBossName}${boss.hasSecondWeapon ? ' (P2)' : ''}`, canvas.width - 15, 11);
+            let moveIndicator = boss.currentAttack ? ` [${boss.currentAttack.name}]` : '';
+            ctx.fillText(`${currentBossName}${boss.phase2Triggered ? ' (P2)' : ''}${moveIndicator}`, canvas.width - 15, 11);
             ctx.textAlign = 'left';
 
             ctx.restore();
