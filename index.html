@@ -162,10 +162,11 @@
         let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, DEATH, VICTORY
         const groundLevel = 290;
         
-        // Pyramid tiered platforms setup
+        // 4-Tier Pyramid Platforms Setup (Ground + 3 tiered platforms)
         const platforms = [
-            { x: 140, y: 225, width: 520, height: 12 }, // 2nd Floor (Wide Base)
-            { x: 290, y: 165, width: 220, height: 12 }  // 3rd Floor (Small Peak Top)
+            { x: 140, y: 230, width: 520, height: 12 }, // 2nd Floor
+            { x: 260, y: 170, width: 280, height: 12 }, // 3rd Floor
+            { x: 360, y: 110, width: 80, height: 12 }   // 4th Floor (Peak)
         ];
 
         const player = {
@@ -176,7 +177,7 @@
             speed: 4.5,
             vy: 0,
             gravity: 0.55,
-            jumpForce: -12.5,
+            jumpForce: -9.2, // Adjusted so you can only jump 1 platform level at a time (~77px max height)
             isGrounded: true,
             hp: 100,
             maxHp: 100,
@@ -207,6 +208,7 @@
             hasDealtDamage: false,
             vy: 0,
             gravity: 0.55,
+            jumpForce: -9.2, // Matches player jump limit
             isGrounded: true
         };
 
@@ -486,18 +488,44 @@
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 
-                // Continuous active pursuit towards player X position without stopping early
-                let horizontalDiff = player.x - boss.x;
-                if (Math.abs(horizontalDiff) > 10) {
-                    boss.x += Math.sign(horizontalDiff) * moveSpeed;
+                // Check if boss is currently standing on a platform while the player is below it
+                let currentPlat = platforms.find(plat => 
+                    Math.abs((boss.y + boss.height) - plat.y) < 6 && 
+                    boss.x + boss.width > plat.x && 
+                    boss.x < plat.x + plat.width
+                );
+
+                if (currentPlat && player.y > boss.y + 10) {
+                    // Boss is on a platform and player is below: force boss to walk towards the nearest edge to drop down
+                    let distToLeftEdge = boss.x - currentPlat.x;
+                    let distToRightEdge = (currentPlat.x + plat.width) - (boss.x + boss.width);
+                    let targetX;
+
+                    if (player.x < currentPlat.x) {
+                        targetX = currentPlat.x - 5;
+                    } else if (player.x > currentPlat.x + plat.width) {
+                        targetX = currentPlat.x + plat.width + 5;
+                    } else {
+                        targetX = distToLeftEdge < distToRightEdge ? currentPlat.x - 5 : currentPlat.x + plat.width + 5;
+                    }
+
+                    let diffToTarget = targetX - boss.x;
+                    boss.x += Math.sign(diffToTarget) * moveSpeed;
+                } else {
+                    // Normal horizontal pursuit
+                    let horizontalDiff = player.x - boss.x;
+                    if (Math.abs(horizontalDiff) > 10) {
+                        boss.x += Math.sign(horizontalDiff) * moveSpeed;
+                    }
                 }
 
-                // Enhanced multi-tier pyramid jump pursuit when player is higher up
+                // Pyramid tier climb pursuit when player is higher up
+                let horizontalDiffForJump = player.x - boss.x;
                 if (player.y < boss.y && boss.isGrounded) {
                     platforms.forEach(plat => {
-                        if (boss.x + boss.width > plat.x && boss.x < plat.x + plat.width && Math.abs(horizontalDiff) < 180) {
+                        if (boss.x + boss.width > plat.x && boss.x < plat.x + plat.width && Math.abs(horizontalDiffForJump) < 180) {
                             if (Math.random() < 0.09) {
-                                boss.vy = -13.0;
+                                boss.vy = boss.jumpForce;
                                 boss.isGrounded = false;
                             }
                         }
@@ -557,10 +585,10 @@
 
             // Background Atmospheric Details
             ctx.fillStyle = '#171821';
-            ctx.fillRect(120, 140, 30, 150);
-            ctx.fillRect(450, 120, 35, 170);
+            ctx.fillRect(120, 100, 30, 190);
+            ctx.fillRect(450, 80, 35, 210);
             
-            // --- DRAW PYRAMID PLATFORMS ---
+            // --- DRAW 4-TIER PYRAMID PLATFORMS ---
             platforms.forEach(plat => {
                 ctx.fillStyle = '#21252b';
                 ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
