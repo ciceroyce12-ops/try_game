@@ -201,22 +201,24 @@
             deaths: 0
         };
 
-        let gameState = 'PLAYING'; // PLAYING, WIN_DELAY, WIN_PAUSE, PHASE2_CUTSCENE, DEATH_ANIMATION, DEATH, VICTORY
+        let gameState = 'PLAYING'; 
         let winDelayTimer = 0;
         let cutsceneTimer = 0;
         let deathAnimTimer = 0;
         
-        // Crowd Reaction State
         let crowdTimer = 0;
         let activeCrowdText = "";
 
+        // Expanded Random Dialogues (At least 8 each)
         const mockDialogues = [
             "🗣️ 'HA HA HA! PATHETIC WORM!'",
             "🗣️ 'WAKE UP OR DIE ALREADY!'",
             "🗣️ 'THAT'S IT? MY GRANDMA FIGHTS HARDER!'",
             "🗣️ 'ANOTHER EASY MEAL FOR THE ARENA!'",
             "🗣️ 'BOOOOO! GET OFF THE FLOOR!'",
-            "🗣️ 'LOOK AT HIM SQUIR姆! DISGUSTING!'"
+            "🗣️ 'LOOK AT HIM SQUIRM! DISGUSTING!'",
+            "🗣️ 'TAKE THAT, YOU CLOWN!'",
+            "🗣️ 'THE FLOOR SAYS HELLO!'"
         ];
 
         const winDialogues = [
@@ -224,28 +226,41 @@
             "🗣️ 'BY THE GODS... THE BEAST HAS FALLEN!'",
             "🗣️ 'WHO IS THIS ABSOLUTE LEGEND?!'",
             "🗣️ 'GLORY TO THE NEW HERO OF THE COLOSSEUM!'",
-            "🗣️ 'I-I CANNOT BELIEVE MY EYES... HE WON?!'"
+            "🗣️ 'I-I CANNOT BELIEVE MY EYES... HE WON?!'",
+            "🗣️ 'THE KING IS DEAD! ALL HAIL THE CHAMPION!'",
+            "🗣️ 'A GLORIOUS UPSET! INCREDIBLE! THINGS ARE CHANGING!'",
+            "🗣️ 'WE EAT LIKE KINGS TONIGHT! WHAT A FIGHT!'"
+        ];
+
+        const loseDialogues = [
+            "🗣️ 'ANOTHER SOUL CLAIMED BY THE FOOLS!'",
+            "🗣️ 'FEED THE CORPSE TO THE HOUNDS!'",
+            "🗣️ 'WELL, THAT WAS A SHORT PERFORMANCE!'",
+            "🗣️ 'ANOTHER DISAPPOINTING SACRIFICE!'",
+            "🗣️ 'DOWN IN THE DUST WHERE YOU BELONG!'",
+            "🗣️ 'REST IN PIECES, FOOL!'",
+            "🗣️ 'BOOO! WHAT A TERRIBLE FIGHTER!'",
+            "🗣️ 'THE ARENA CLAIMS ANOTHER VICTIM!'"
         ];
 
         const groundLevel = 290;
         
         // 4-Tier Pyramid Platforms Setup
         const platforms = [
-            { x: 140, y: 230, width: 520, height: 12 }, // 2nd Floor
-            { x: 260, y: 170, width: 280, height: 12 }, // 3rd Floor
-            { x: 360, y: 110, width: 80, height: 12 }   // 4th Floor (Peak)
+            { x: 140, y: 230, width: 520, height: 12 }, 
+            { x: 260, y: 170, width: 280, height: 12 }, 
+            { x: 360, y: 110, width: 80, height: 12 }   
         ];
 
-        // Detailed Audience Spectators Setup (Position and appearance profiles)
+        // Unique Distinct Audience Spectators Setup with individual personalities and sizes
         const audienceMembers = [];
-        // Generate crowd on tiers (Left and Right spectator sections)
-        for (let x = 85; x <= 220; x += 18) {
-            audienceMembers.push({ x: x, y: 70, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
-            audienceMembers.push({ x: x + 6, y: 88, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
+        for (let x = 80; x <= 225; x += 22) {
+            audienceMembers.push({ x: x, y: 68, type: Math.floor(Math.random() * 5), size: 10 + Math.random() * 4, phase: Math.random() * 10, color: ['#c8b090', '#9e8263', '#d4af37', '#8a6f52', '#a67c52'][Math.floor(Math.random()*5)] });
+            audienceMembers.push({ x: x + 8, y: 86, type: Math.floor(Math.random() * 5), size: 9 + Math.random() * 3, phase: Math.random() * 10, color: ['#c8b090', '#9e8263', '#d4af37', '#8a6f52', '#a67c52'][Math.floor(Math.random()*5)] });
         }
-        for (let x = 580; x <= 715; x += 18) {
-            audienceMembers.push({ x: x, y: 70, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
-            audienceMembers.push({ x: x + 6, y: 88, type: Math.floor(Math.random() * 3), phase: Math.random() * 10 });
+        for (let x = 575; x <= 720; x += 22) {
+            audienceMembers.push({ x: x, y: 68, type: Math.floor(Math.random() * 5), size: 10 + Math.random() * 4, phase: Math.random() * 10, color: ['#c8b090', '#9e8263', '#d4af37', '#8a6f52', '#a67c52'][Math.floor(Math.random()*5)] });
+            audienceMembers.push({ x: x + 8, y: 86, type: Math.floor(Math.random() * 5), size: 9 + Math.random() * 3, phase: Math.random() * 10, color: ['#c8b090', '#9e8263', '#d4af37', '#8a6f52', '#a67c52'][Math.floor(Math.random()*5)] });
         }
 
         const player = {
@@ -299,7 +314,6 @@
         let lasers = [];
         let keys = { left: false, right: false };
 
-        // Input Listeners (Keyboard)
         window.addEventListener('keydown', e => {
             if (gameState !== 'PLAYING') {
                 if (e.key === 'Enter') {
@@ -318,7 +332,6 @@
             if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
         });
 
-        // Touch Listeners (Mobile)
         document.getElementById('btn-left').addEventListener('touchstart', () => { if(gameState==='PLAYING') keys.left = true; });
         document.getElementById('btn-left').addEventListener('touchend', () => keys.left = false);
         document.getElementById('btn-right').addEventListener('touchstart', () => { if(gameState==='PLAYING') keys.right = true; });
@@ -327,7 +340,6 @@
         document.getElementById('btn-dodge').addEventListener('click', () => { if(gameState==='PLAYING') triggerDodge(); });
         document.getElementById('btn-attack').addEventListener('click', () => { if(gameState==='PLAYING') triggerAttack(); });
         
-        // Upgrade Buttons
         document.getElementById('btn-dmg-up').addEventListener('click', () => applyUpgrade('damage'));
         document.getElementById('btn-hp-up').addEventListener('click', () => applyUpgrade('health'));
         document.getElementById('btn-stamina-up').addEventListener('click', () => applyUpgrade('stamina'));
@@ -381,7 +393,6 @@
                     boss.hp -= meleeDmg;
                     checkBossPhase2();
                     if (boss.hp <= 0 && gameState === 'PLAYING') {
-                        // Trigger Win crowd dialogue randomly
                         activeCrowdText = winDialogues[Math.floor(Math.random() * winDialogues.length)];
                         crowdTimer = 160;
                         gameState = 'WIN_DELAY';
@@ -481,7 +492,7 @@
             deathAnimTimer = 110; 
             player.vy = -7; 
             player.rotation = 0;
-            activeCrowdText = "🗣️ 'ANOTHER SOUL CLAIMED BY THE FOOLS!'";
+            activeCrowdText = loseDialogues[Math.floor(Math.random() * loseDialogues.length)];
             crowdTimer = 140;
         }
 
@@ -613,7 +624,6 @@
                 crowdTimer--;
             }
 
-            // Stamina regeneration when not spending it
             let isMoving = (keys.left || keys.right) && !player.isDodging;
             if (!isMoving && player.stamina < player.maxStamina) {
                 player.stamina += 0.5; 
@@ -802,64 +812,92 @@
 
             // --- SPECTATOR TIERS ---
             ctx.fillStyle = '#1f150f';
-            ctx.fillRect(75, 55, canvas.width - 150, 55);
+            ctx.fillRect(75, 50, canvas.width - 150, 60);
             ctx.strokeStyle = '#3d2b1f';
             ctx.lineWidth = 2;
-            ctx.strokeRect(75, 55, canvas.width - 150, 55);
+            ctx.strokeRect(75, 50, canvas.width - 150, 60);
 
             // Central Crest
             ctx.fillStyle = '#3d2b1f';
             ctx.beginPath();
-            ctx.arc(canvas.width / 2, 75, 22, 0, Math.PI * 2);
+            ctx.arc(canvas.width / 2, 72, 22, 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = '#d4af37';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // --- RECOGNIZABLE BUG SPECTATORS ---
-            let globalBounce = Math.sin(Date.now() / 120) * 3;
-            audienceMembers.forEach((bug, index) => {
-                let bounce = Math.sin(Date.now() / 80 + bug.phase) * 3 + (crowdTimer > 0 ? globalBounce * 2 : 0);
+            // --- LARGER, PERSONALIZED BUG SPECTATORS ---
+            let globalBounce = Math.sin(Date.now() / 120) * 4;
+            audienceMembers.forEach((bug) => {
+                let bounce = Math.sin(Date.now() / 80 + bug.phase) * 4 + (crowdTimer > 0 ? globalBounce * 1.5 : 0);
                 let bx = bug.x;
                 let by = bug.y + bounce;
+                let s = bug.size;
 
-                // Bug shell / head body color variety
+                // Body/Shell
+                ctx.fillStyle = bug.color;
+                ctx.beginPath();
+                ctx.arc(bx, by, s, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#3d2b1f';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Unique Personalities / Appearance based on type (0 to 4)
                 if (bug.type === 0) {
-                    ctx.fillStyle = '#c8b090'; // Horned bug
+                    // Tall Horned Bug
+                    ctx.fillStyle = '#d4af37';
+                    ctx.beginPath();
+                    ctx.moveTo(bx - s * 0.5, by - s);
+                    ctx.lineTo(bx - s * 0.8, by - s * 1.8);
+                    ctx.lineTo(bx - s * 0.2, by - s * 1.2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(bx + s * 0.5, by - s);
+                    ctx.lineTo(bx + s * 0.8, by - s * 1.8);
+                    ctx.lineTo(bx + s * 0.2, by - s * 1.2);
+                    ctx.fill();
                 } else if (bug.type === 1) {
-                    ctx.fillStyle = '#9e8263'; // Masked bug
+                    // Armored Mask Bug
+                    ctx.fillStyle = '#453224';
+                    ctx.fillRect(bx - s * 0.8, by - s * 0.4, s * 1.6, s * 0.8);
+                } else if (bug.type === 2) {
+                    // Crowned Spectator (VIP bug)
+                    ctx.fillStyle = '#d4af37';
+                    ctx.fillRect(bx - s * 0.6, by - s * 1.4, s * 1.2, s * 0.4);
+                } else if (bug.type === 3) {
+                    // Spike-headed bug
+                    ctx.fillStyle = '#e06c75';
+                    ctx.beginPath();
+                    ctx.moveTo(bx, by - s * 1.6);
+                    ctx.lineTo(bx - s * 0.4, by - s);
+                    ctx.lineTo(bx + s * 0.4, by - s);
+                    ctx.fill();
                 } else {
-                    ctx.fillStyle = '#6b5442'; // Dark armored spectator
+                    // Wide-eyed observer
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(bx - s * 0.6, by - s * 0.5, s * 0.5, s * 0.5);
+                    ctx.fillRect(bx + s * 0.1, by - s * 0.5, s * 0.5, s * 0.5);
                 }
 
-                // Head shape
-                ctx.beginPath();
-                ctx.arc(bx, by, 7, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Distinct bug horns/antennae or eyes
-                ctx.fillStyle = '#d4af37';
-                ctx.fillRect(bx - 3, by - 10, 2, 5);
-                ctx.fillRect(bx + 1, by - 10, 2, 5);
-
-                // Glowing eyes
-                ctx.fillStyle = crowdTimer > 0 ? '#e06c75' : '#ffffff';
-                ctx.fillRect(bx - 4, by - 2, 2, 2);
-                ctx.fillRect(bx + 2, by - 2, 2, 2);
+                // Eyes
+                ctx.fillStyle = crowdTimer > 0 ? '#e06c75' : '#120d09';
+                ctx.fillRect(bx - s * 0.4, by - s * 0.2, s * 0.3, s * 0.3);
+                ctx.fillRect(bx + s * 0.1, by - s * 0.2, s * 0.3, s * 0.3);
             });
 
             // Active Crowd Shout / Dialogue Banner
             if (crowdTimer > 0) {
-                ctx.fillStyle = 'rgba(18, 13, 9, 0.85)';
-                ctx.fillRect(canvas.width / 2 - 200, 38, 400, 28);
+                ctx.fillStyle = 'rgba(18, 13, 9, 0.9)';
+                ctx.fillRect(canvas.width / 2 - 210, 36, 420, 30);
                 ctx.strokeStyle = '#d4af37';
                 ctx.lineWidth = 2;
-                ctx.strokeRect(canvas.width / 2 - 200, 38, 400, 28);
+                ctx.strokeRect(canvas.width / 2 - 210, 36, 420, 30);
 
                 ctx.fillStyle = '#d4af37';
-                ctx.font = 'bold 12px sans-serif';
+                ctx.font = 'bold 13px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(activeCrowdText, canvas.width / 2, 56 + Math.sin(Date.now() / 30) * 2);
+                ctx.fillText(activeCrowdText, canvas.width / 2, 55 + Math.sin(Date.now() / 30) * 2);
                 ctx.textAlign = 'left';
             }
 
