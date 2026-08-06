@@ -497,11 +497,10 @@
         };
 
         function updateBossSize() {
-            // Level 1 = smallest (width: 40, height: 55), Level 10 = biggest (~width: 58, height: 80)
             let baseW = 40;
             let baseH = 55;
             let lvlFactor = Math.min(stats.level, 10) - 1;
-            let scale = 1 + lvlFactor * 0.05; // ~45% larger at level 10
+            let scale = 1 + lvlFactor * 0.05; 
             boss.width = Math.round(baseW * scale);
             boss.height = Math.round(baseH * scale);
             boss.y = groundLevel - boss.height;
@@ -911,7 +910,10 @@
             if (crowdTimer > 0) crowdTimer--;
 
             let isMoving = (keys.left || keys.right) && !player.isDodging;
-            if (!isMoving && player.stamina < player.maxStamina) {
+            if (isMoving) {
+                player.stamina -= 0.15; // Reduce stamina by a small amount while walking[cite: 5]
+                if (player.stamina < 0) player.stamina = 0;
+            } else if (!isMoving && player.stamina < player.maxStamina) {
                 player.stamina += 0.5; 
                 if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
             }
@@ -1235,7 +1237,7 @@
             }
             ctx.restore();
 
-            // Boss Render (Dynamically Proportional to Level Size)
+            // Boss Render
             ctx.save();
             ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
             ctx.rotate(boss.rotation || 0);
