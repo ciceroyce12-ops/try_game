@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Platform Edition</title>
+    <title>Souls-Like Mini RPG - Pyramid Platform Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -161,12 +161,12 @@
 
         let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, DEATH, VICTORY
         const groundLevel = 290;
-        const platform = {
-            x: 140,
-            y: 225,
-            width: 520,
-            height: 12
-        };
+        
+        // Pyramid tiered platforms setup
+        const platforms = [
+            { x: 140, y: 225, width: 520, height: 12 }, // 2nd Floor (Wide Base)
+            { x: 290, y: 165, width: 220, height: 12 }  // 3rd Floor (Small Peak Top)
+        ];
 
         const player = {
             x: 100,
@@ -387,23 +387,26 @@
             let feetPrev = prevY + entity.height;
             let feetCurr = entity.y + entity.height;
 
-            // Platform collision (one-way: land from above when falling)
-            if (entity.vy >= 0 && 
-                feetPrev <= platform.y + 6 && 
-                feetCurr >= platform.y && 
-                entity.x + entity.width > platform.x && 
-                entity.x < platform.x + platform.width) {
-                entity.y = platform.y - entity.height;
-                entity.vy = 0;
-                entity.isGrounded = true;
-            }
-
             // Ground collision
             if (entity.y >= groundLevel - entity.height) {
                 entity.y = groundLevel - entity.height;
                 entity.vy = 0;
                 entity.isGrounded = true;
+                return;
             }
+
+            // Platforms collision (one-way: land from above when falling)
+            platforms.forEach(plat => {
+                if (entity.vy >= 0 && 
+                    feetPrev <= plat.y + 6 && 
+                    feetCurr >= plat.y && 
+                    entity.x + entity.width > plat.x && 
+                    entity.x < plat.x + plat.width) {
+                    entity.y = plat.y - entity.height;
+                    entity.vy = 0;
+                    entity.isGrounded = true;
+                }
+            });
         }
 
         function update() {
@@ -483,18 +486,25 @@
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 
-                if (boss.x > player.x + 60) boss.x -= moveSpeed;
-                else if (boss.x < player.x - 60) boss.x += moveSpeed;
-
-                // Boss jump to platform if player is on it and boss is below
-                if (player.y < groundLevel - player.height - 20 && boss.isGrounded && verticalDistance > 30) {
-                    if (Math.abs(boss.x - player.x) < 200 && boss.x > platform.x && boss.x < platform.x + platform.width && Math.random() < 0.06) {
-                        boss.vy = -12;
-                        boss.isGrounded = false;
-                    }
+                // Continuous active pursuit towards player X position without stopping early
+                let horizontalDiff = player.x - boss.x;
+                if (Math.abs(horizontalDiff) > 10) {
+                    boss.x += Math.sign(horizontalDiff) * moveSpeed;
                 }
 
-                if (distanceToPlayer < 120 && verticalDistance < 40 && boss.attackCooldown > Math.max(40, 80 - stats.wins * 5)) {
+                // Enhanced multi-tier pyramid jump pursuit when player is higher up
+                if (player.y < boss.y && boss.isGrounded) {
+                    platforms.forEach(plat => {
+                        if (boss.x + boss.width > plat.x && boss.x < plat.x + plat.width && Math.abs(horizontalDiff) < 180) {
+                            if (Math.random() < 0.09) {
+                                boss.vy = -13.0;
+                                boss.isGrounded = false;
+                            }
+                        }
+                    });
+                }
+
+                if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(40, 80 - stats.wins * 5)) {
                     boss.state = 'CHARGING';
                     boss.telegraphTimer = Math.max(20, 35 - stats.wins * 2);
                     boss.attackCooldown = 0;
@@ -550,17 +560,19 @@
             ctx.fillRect(120, 140, 30, 150);
             ctx.fillRect(450, 120, 35, 170);
             
-            // --- DRAW PLATFORM (2nd Floor) ---
-            ctx.fillStyle = '#21252b';
-            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-            ctx.strokeStyle = '#383a42';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
-            ctx.strokeStyle = '#61afef';
-            ctx.beginPath();
-            ctx.moveTo(platform.x, platform.y);
-            ctx.lineTo(platform.x + platform.width, platform.y);
-            ctx.stroke();
+            // --- DRAW PYRAMID PLATFORMS ---
+            platforms.forEach(plat => {
+                ctx.fillStyle = '#21252b';
+                ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+                ctx.strokeStyle = '#383a42';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(plat.x, plat.y, plat.width, plat.height);
+                ctx.strokeStyle = '#61afef';
+                ctx.beginPath();
+                ctx.moveTo(plat.x, plat.y);
+                ctx.lineTo(plat.x + plat.width, plat.y);
+                ctx.stroke();
+            });
 
             // Ground Floor
             ctx.strokeStyle = '#3b4252';
