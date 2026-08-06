@@ -164,6 +164,7 @@
             <div id="upgrade-options" class="upgrade-container">
                 <button class="btn-upgrade" id="btn-dmg-up">⚔️ UPGRADE DAMAGE (+50%)</button>
                 <button class="btn-upgrade" id="btn-hp-up">🛡️ UPGRADE HEALTH (+50 Max HP & Heal)</button>
+                <button class="btn-upgrade" id="btn-stamina-up">⚡ UPGRADE STAMINA (+Max Stamina & Refill)</button>
             </div>
             <div id="death-tutorial-text"></div>
             <button id="btn-restart">TRY AGAIN?</button>
@@ -287,31 +288,32 @@
         // Upgrade Buttons
         document.getElementById('btn-dmg-up').addEventListener('click', () => applyUpgrade('damage'));
         document.getElementById('btn-hp-up').addEventListener('click', () => applyUpgrade('health'));
+        document.getElementById('btn-stamina-up').addEventListener('click', () => applyUpgrade('stamina'));
         btnRestart.addEventListener('click', () => restartGameAfterDeath());
 
         function triggerJump() {
-            if (player.isGrounded && !player.isDodging && player.stamina >= 10) {
+            if (player.isGrounded && !player.isDodging && player.stamina >= 15) {
                 player.vy = player.jumpForce;
                 player.isGrounded = false;
-                player.stamina -= 10;
+                player.stamina -= 15;
             }
         }
 
         function triggerDodge() {
-            if (player.stamina >= 25 && !player.isDodging) {
+            if (player.stamina >= 35 && !player.isDodging) {
                 player.isDodging = true;
                 player.dodgeTimer = 18; 
-                player.stamina -= 25;
+                player.stamina -= 35;
             }
         }
 
         function triggerAttack() {
-            if (player.stamina >= 15 && !player.isAttacking && !player.isDodging) {
+            if (player.stamina >= 20 && !player.isAttacking && !player.isDodging) {
                 player.facing = boss.x >= player.x ? 1 : -1;
 
                 player.isAttacking = true;
                 player.attackTimer = 12;
-                player.stamina -= 15; 
+                player.stamina -= 20; 
 
                 player.comboCount++;
                 player.comboTimer = 180; 
@@ -384,6 +386,9 @@
             } else if (type === 'health') {
                 player.maxHp += 50;
                 player.hp = player.maxHp; 
+            } else if (type === 'stamina') {
+                player.maxStamina = Math.round(player.maxStamina * 1.05 + 20);
+                player.stamina = player.maxStamina;
             }
             resumeGame();
         }
@@ -446,6 +451,7 @@
             player.maxHp = 100;
             player.hp = player.maxHp;
             player.damageMultiplier = 1.0;
+            player.maxStamina = 100;
             player.stamina = player.maxStamina;
             player.x = 100;
             player.y = groundLevel - player.height;
@@ -502,11 +508,11 @@
             let isMoving = (keys.left || keys.right) && !player.isDodging;
 
             if (isMoving) {
-                player.stamina -= 0.45; 
+                player.stamina -= 0.8; // More demanding stamina drain on running
                 if (player.stamina < 0) player.stamina = 0;
             } else {
                 if (player.stamina < player.maxStamina) {
-                    player.stamina += 0.9; 
+                    player.stamina += 0.4; // Slower stamina regeneration
                     if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
                 }
             }
@@ -573,10 +579,28 @@
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 
-                // Directly track player horizontally so the boss naturally walks off platforms to pursue on ground
+                let currentPlat = platforms.find(plat => 
+                    Math.abs((boss.y + boss.height) - plat.y) < 6 && 
+                    boss.x + boss.width > plat.x && 
+                    boss.x < plat.x + plat.width
+                );
+
                 let horizontalDiff = player.x - boss.x;
-                if (Math.abs(horizontalDiff) > 10) {
-                    boss.x += Math.sign(horizontalDiff) * moveSpeed;
+
+                if (currentPlat) {
+                    // Prevent dropping down from the left side of platforms ("right side is good")
+                    if (horizontalDiff < 0 && boss.x <= currentPlat.x + 2) {
+                        boss.vx = 0;
+                    } else if (horizontalDiff > 0 && boss.x + boss.width >= currentPlat.x + currentPlat.width - 2) {
+                        // Allowed to drop off the right side
+                        boss.x += moveSpeed;
+                    } else {
+                        boss.x += Math.sign(horizontalDiff) * moveSpeed;
+                    }
+                } else {
+                    if (Math.abs(horizontalDiff) > 10) {
+                        boss.x += Math.sign(horizontalDiff) * moveSpeed;
+                    }
                 }
 
                 // Jump up if player is higher up
@@ -633,12 +657,6 @@
                         boss.vx = 0;
                         boss.state = 'IDLE';
                     }
-                }
-            }
-            else if (boss.state === 'CALM') {
-                boss.calmTimer--;
-                if (boss.calmTimer <= 0) {
-                    boss.state = 'IDLE';
                 }
             }
         }
@@ -724,7 +742,7 @@
             } else if (boss.state === 'DODGING') {
                 ctx.fillStyle = '#e5c07b'; 
             } else {
-                ctx.fillStyle = '#4b5263'; // Normal boss grey color for IDLE and CALM (no green window)
+                ctx.fillStyle = '#4b5263'; 
             }
             ctx.fillRect(6, 12, 36, 53);
 
@@ -755,7 +773,7 @@
             ctx.fillStyle = '#21252b';
             ctx.fillRect(20, 36, 110, 8);
             ctx.fillStyle = player.stamina <= 0 ? '#e06c75' : '#e5c07b';
-            ctx.fillRect(20, 36, (player.stamina / player.maxStamina) * 110, 8);
+            ctx.fillRect(20, 36, Math.min(110, (player.stamina / player.maxStamina) * 110), 8);
 
             ctx.fillStyle = '#21252b';
             ctx.fillRect(canvas.width - 180, 20, 160, 12);
