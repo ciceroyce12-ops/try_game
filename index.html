@@ -284,8 +284,8 @@
                 staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
                 tryAgain: "TRY AGAIN?",
                 youDie: "YOU DIE",
-                phase2Title: "⚠️ PHASE 2: DUAL WEAPONS! ⚠️",
-                phase2Desc: "Boss speed & fury increased!",
+                phase2Title: "⚠️ PHASE 2: WEAPON THROWN BY CROWD! ⚠️",
+                phase2Desc: "Boss catches the second weapon & enrages!",
                 desktopControls: "⌨️ <b>Controls:</b> Move: <b>A / D</b> or <b>Arrow Keys</b> | Jump: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Attack: <b>J / Enter</b>",
                 jumpBtn: "JUMP",
                 dodgeBtn: "DODGE",
@@ -349,8 +349,8 @@
                 staminaUp: "⚡ UPGRADE STAMINA (+15 & Refill)",
                 tryAgain: "COBA LAGI?",
                 youDie: "ANDA MATI",
-                phase2Title: "⚠️ PHASE 2: DUAL WEAPONS! ⚠️",
-                phase2Desc: "Boss makin ngebut dan brutal!",
+                phase2Title: "⚠️ PHASE 2: SENJATA LEMPARAN PENONTON! ⚠️",
+                phase2Desc: "Boss nangkep senjata kedua dan ngamuk!",
                 desktopControls: "⌨️ <b>Kontrol:</b> Gerak: <b>A / D</b> atau <b>Arrow Keys</b> | Lompat: <b>W / Up / Space</b> | Dodge: <b>Shift</b> | Serang: <b>J / Enter</b>",
                 jumpBtn: "JUMP",
                 dodgeBtn: "DODGE",
@@ -596,10 +596,9 @@
         function checkBossPhase2() {
             if (boss.hp <= boss.maxHp * 0.5 && !boss.phase2Triggered) {
                 boss.phase2Triggered = true;
-                boss.hasSecondWeapon = true;
                 boss.speedMultiplier *= 1.25; 
                 gameState = 'PHASE2_CUTSCENE';
-                cutsceneTimer = 120; 
+                cutsceneTimer = 120; // Exactly 2 seconds at 60 FPS
             }
         }
 
@@ -895,6 +894,11 @@
 
             if (gameState === 'PHASE2_CUTSCENE') {
                 cutsceneTimer--;
+                // Equip second weapon when it lands into boss's hands near the end of the 2-second cutscene
+                if (cutsceneTimer === 25) {
+                    spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'spark', 15);
+                    boss.hasSecondWeapon = true;
+                }
                 if (cutsceneTimer <= 0) gameState = 'PLAYING';
                 return;
             }
@@ -911,7 +915,7 @@
 
             let isMoving = (keys.left || keys.right) && !player.isDodging;
             if (isMoving) {
-                player.stamina -= 0.15; // Reduce stamina by a small amount while walking[cite: 5]
+                player.stamina -= 0.15; 
                 if (player.stamina < 0) player.stamina = 0;
             } else if (!isMoving && player.stamina < player.maxStamina) {
                 player.stamina += 0.5; 
@@ -1128,7 +1132,7 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            let isExcited = (crowdTimer > 0) || (gameState === 'WIN_DELAY' || gameState === 'WIN_PAUSE' || gameState === 'VICTORY' || gameState === 'DEATH' || gameState === 'DEATH_ANIMATION' || gameState === 'BOSS_DEATH_ANIMATION');
+            let isExcited = (crowdTimer > 0) || (gameState === 'WIN_DELAY' || gameState === 'WIN_PAUSE' || gameState === 'VICTORY' || gameState === 'DEATH' || gameState === 'DEATH_ANIMATION' || gameState === 'BOSS_DEATH_ANIMATION' || gameState === 'PHASE2_CUTSCENE');
             let bounceSpeed = isExcited ? 70 : 350; 
             let bounceAmplitude = isExcited ? 7 : 1.2; 
 
@@ -1262,24 +1266,49 @@
             ctx.fillRect(bDrawX + bw * 0.54, bDrawY + bh * 0.3, bw * 0.16, bh * 0.06);
 
             ctx.fillStyle = '#be5046';
-            ctx.fillRect(boss.x > player.x ? bDrawX - bw * 0.3 : bDrawX + bw, bDrawY + bh * 0.38, bw * 0.3, bh * 0.54);
+            ctx.fillRect(bDrawX - bw * 0.3, bDrawY + bh * 0.38, bw * 0.3, bh * 0.54);
             if (boss.hasSecondWeapon) {
                 ctx.fillStyle = '#e06c75';
-                ctx.fillRect(boss.x > player.x ? bDrawX + bw * 0.95 : bDrawX - bw * 0.45, bDrawY + bh * 0.3, bw * 0.25, bh * 0.61);
+                ctx.fillRect(bDrawX + bw, bDrawY + bh * 0.3, bw * 0.25, bh * 0.61);
             }
             ctx.restore();
 
+            // PHASE 2 CUTSCENE ANIMATION (2 Seconds Total / 120 Frames)
             if (gameState === 'PHASE2_CUTSCENE') {
-                ctx.fillStyle = 'rgba(18, 13, 9, 0.85)';
+                ctx.fillStyle = 'rgba(18, 13, 9, 0.75)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Calculate parabolic throw progress (0 to 1 over 120 frames)
+                let p = 1 - (cutsceneTimer / 120);
+                let startX = 180; // Audience gallery source position
+                let startY = 80;
+                let targetX = boss.x + boss.width / 2;
+                let targetY = boss.y + boss.height / 2;
+                
+                let flyX = startX + (targetX - startX) * p;
+                let flyY = startY + (targetY - startY) * p - Math.sin(p * Math.PI) * 90;
+
+                // Draw spinning weapon flying through the air from the audience
+                if (cutsceneTimer > 25) {
+                    ctx.save();
+                    ctx.translate(flyX, flyY);
+                    ctx.rotate(p * Math.PI * 8);
+                    ctx.fillStyle = '#e06c75';
+                    ctx.fillRect(-14, -5, 28, 10);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(-10, -2, 20, 4);
+                    ctx.restore();
+                }
+
+                // Title & Description Overlay
                 ctx.fillStyle = '#d4af37';
-                ctx.font = 'bold 18px sans-serif';
+                ctx.font = 'bold 16px sans-serif';
                 ctx.textAlign = 'center';
                 const t = translations[currentLang];
-                ctx.fillText(t.phase2Title, canvas.width / 2, canvas.height / 2 - 10);
+                ctx.fillText(t.phase2Title, canvas.width / 2, canvas.height / 2 - 25);
                 ctx.fillStyle = '#b89768';
                 ctx.font = '12px sans-serif';
-                ctx.fillText(t.phase2Desc, canvas.width / 2, canvas.height / 2 + 15);
+                ctx.fillText(t.phase2Desc, canvas.width / 2, canvas.height / 2 + 5);
                 ctx.textAlign = 'left';
             }
 
