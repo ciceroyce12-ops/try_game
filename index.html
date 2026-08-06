@@ -406,7 +406,6 @@
             document.getElementById('btn-lang-en').classList.toggle('active-lang', lang === 'en');
             document.getElementById('btn-lang-id').classList.toggle('active-lang', lang === 'id');
 
-            // Update static UI elements
             const t = translations[currentLang];
             document.getElementById('main-title').innerText = t.title;
             document.getElementById('lbl-lvl').innerText = t.lblLvl;
@@ -492,10 +491,23 @@
         };
 
         const boss = {
-            x: 650, y: groundLevel - 65, width: 48, height: 65, hp: 300, maxHp: 300, attackCooldown: 0, state: 'IDLE', 
+            x: 650, y: 0, width: 42, height: 58, hp: 300, maxHp: 300, attackCooldown: 0, state: 'IDLE', 
             telegraphTimer: 0, dodgeTimer: 0, vx: 0, speedMultiplier: 1.0, hasDealtDamage: false, vy: 0, gravity: 0.55,
             jumpForce: -9.2, isGrounded: true, phase2Triggered: false, hasSecondWeapon: false, comboCount: 0, rotation: 0
         };
+
+        function updateBossSize() {
+            // Level 1 = smallest (width: 40, height: 55), Level 10 = biggest (~width: 58, height: 80)
+            let baseW = 40;
+            let baseH = 55;
+            let lvlFactor = Math.min(stats.level, 10) - 1;
+            let scale = 1 + lvlFactor * 0.05; // ~45% larger at level 10
+            boss.width = Math.round(baseW * scale);
+            boss.height = Math.round(baseH * scale);
+            boss.y = groundLevel - boss.height;
+        }
+
+        updateBossSize();
 
         let lasers = [];
         let keys = { left: false, right: false };
@@ -698,11 +710,11 @@
         function resumeGame() {
             overlayScreen.style.display = "none";
             stats.level++;
+            updateBossSize();
             boss.speedMultiplier = 1.0 + (stats.wins * 0.25);
             boss.maxHp = 300 * Math.pow(2, stats.wins);
             boss.hp = boss.maxHp;
             boss.x = 650;
-            boss.y = groundLevel - boss.height;
             boss.vy = 0;
             boss.rotation = 0;
             boss.state = 'IDLE';
@@ -774,11 +786,11 @@
             playerTrail = [];
             particles = [];
 
+            updateBossSize();
             boss.speedMultiplier = 1.0;
             boss.maxHp = 300;
             boss.hp = boss.maxHp;
             boss.x = 650;
-            boss.y = groundLevel - boss.height;
             boss.vy = 0;
             boss.rotation = 0;
             boss.state = 'IDLE';
@@ -1223,7 +1235,7 @@
             }
             ctx.restore();
 
-            // Boss Render
+            // Boss Render (Dynamically Proportional to Level Size)
             ctx.save();
             ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
             ctx.rotate(boss.rotation || 0);
@@ -1231,25 +1243,27 @@
 
             let bDrawX = boss.x;
             let bDrawY = boss.y;
+            let bw = boss.width;
+            let bh = boss.height;
 
             ctx.fillStyle = gameState === 'BOSS_DEATH_ANIMATION' ? '#e06c75' : (boss.state === 'CHARGING' ? '#e06c75' : (boss.state === 'ATTACKING' ? '#be5046' : (boss.hasSecondWeapon ? '#6b3a3a' : '#544033')));
-            ctx.fillRect(bDrawX + 6, bDrawY + 12, 36, 53);
+            ctx.fillRect(bDrawX + bw * 0.125, bDrawY + bh * 0.185, bw * 0.75, bh * 0.81);
 
             ctx.fillStyle = '#b89768';
             ctx.beginPath();
-            ctx.moveTo(bDrawX + 6, bDrawY + 12); ctx.lineTo(bDrawX, bDrawY); ctx.lineTo(bDrawX + 12, bDrawY + 12);
-            ctx.moveTo(bDrawX + 42, bDrawY + 12); ctx.lineTo(bDrawX + 48, bDrawY); ctx.lineTo(bDrawX + 36, bDrawY + 12);
+            ctx.moveTo(bDrawX + bw * 0.125, bDrawY + bh * 0.185); ctx.lineTo(bDrawX, bDrawY); ctx.lineTo(bDrawX + bw * 0.25, bDrawY + bh * 0.185);
+            ctx.moveTo(bDrawX + bw * 0.875, bDrawY + bh * 0.185); ctx.lineTo(bDrawX + bw, bDrawY); ctx.lineTo(bDrawX + bw * 0.75, bDrawY + bh * 0.185);
             ctx.fill();
 
             ctx.fillStyle = boss.state === 'CHARGING' ? '#ffffff' : '#e06c75';
-            ctx.fillRect(bDrawX + 14, bDrawY + 20, 8, 4);
-            ctx.fillRect(bDrawX + 26, bDrawY + 20, 8, 4);
+            ctx.fillRect(bDrawX + bw * 0.3, bDrawY + bh * 0.3, bw * 0.16, bh * 0.06);
+            ctx.fillRect(bDrawX + bw * 0.54, bDrawY + bh * 0.3, bw * 0.16, bh * 0.06);
 
             ctx.fillStyle = '#be5046';
-            ctx.fillRect(boss.x > player.x ? bDrawX - 14 : bDrawX + 42, bDrawY + 25, 14, 35);
+            ctx.fillRect(boss.x > player.x ? bDrawX - bw * 0.3 : bDrawX + bw, bDrawY + bh * 0.38, bw * 0.3, bh * 0.54);
             if (boss.hasSecondWeapon) {
                 ctx.fillStyle = '#e06c75';
-                ctx.fillRect(boss.x > player.x ? bDrawX + 46 : bDrawX - 22, bDrawY + 20, 12, 40);
+                ctx.fillRect(boss.x > player.x ? bDrawX + bw * 0.95 : bDrawX - bw * 0.45, bDrawY + bh * 0.3, bw * 0.25, bh * 0.61);
             }
             ctx.restore();
 
