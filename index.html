@@ -209,12 +209,51 @@
         let crowdTimer = 0;
         let activeCrowdText = "";
 
+        // Hit-Stop (Hitlag) State
+        let hitStopFrames = 0;
+
+        // Particle System Array & Helper
+        let particles = [];
+
+        function spawnParticles(x, y, type, count) {
+            for (let i = 0; i < count; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 4 + 1;
+                let color = '#d4af37';
+                if (type === 'blood') {
+                    color = Math.random() > 0.5 ? '#e06c75' : '#be5046';
+                } else if (type === 'spark') {
+                    color = '#ffe599';
+                } else if (type === 'dust') {
+                    color = '#8a6f52';
+                    angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
+                    speed = Math.random() * 2 + 0.5;
+                }
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - (type === 'dust' ? 1 : 0),
+                    size: Math.random() * 4 + 2,
+                    color: color,
+                    alpha: 1.0,
+                    life: 0,
+                    maxLife: Math.random() * 20 + 15,
+                    type: type
+                });
+            }
+        }
+
         // Screen Shake State
         let shakeTimer = 0;
         let shakeIntensity = 8;
 
         // Visual Trail / Ghost Effect Array
         let playerTrail = [];
+
+        // Ground tracking for landing dust clouds
+        let playerWasGrounded = true;
+        let bossWasGrounded = true;
 
         // Expanded Random Dialogues
         const mockDialogues = [
@@ -395,6 +434,12 @@
                 
                 if (hitBoxX < boss.x + boss.width && hitBoxX + hitBoxWidth > boss.x &&
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
+                    
+                    // Hit-Stop & Particle Feedback on successful hit
+                    hitStopFrames = 3; 
+                    spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'blood', 12);
+                    spawnParticles(hitBoxX + hitBoxWidth / 2, player.y + 20, 'spark', 8);
+
                     let laserDmg = (15 + stats.level * 3) * player.damageMultiplier;
                     let meleeDmg = laserDmg * 2;
                     boss.hp -= meleeDmg;
@@ -488,6 +533,7 @@
             player.vy = 0;
             player.rotation = 0;
             playerTrail = [];
+            particles = [];
             lvlDisplay.innerText = stats.level;
             gameState = 'PLAYING';
         }
@@ -547,6 +593,7 @@
             player.vy = 0;
             player.rotation = 0;
             playerTrail = [];
+            particles = [];
 
             boss.speedMultiplier = 1.0;
             boss.maxHp = 300;
@@ -595,6 +642,28 @@
         }
 
         function update() {
+            // Handle Hit-Stop (Hitlag) Freeze Frames
+            if (hitStopFrames > 0) {
+                hitStopFrames--;
+                return;
+            }
+
+            // Update Particle Systems continuously
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.type === 'dust') {
+                    p.vy += 0.04;
+                } else {
+                    p.vy += 0.2; // gravity for blood/sparks
+                }
+                p.life++;
+                p.alpha = 1 - (p.life / p.maxLife);
+                if (p.life >= p.maxLife || p.alpha <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
             if (gameState === 'DEATH_ANIMATION') {
                 deathAnimTimer--;
                 player.vy += player.gravity;
@@ -610,7 +679,7 @@
                 // Boss celebration animation logic during the 4-second delay
                 applyPhysics(boss);
                 if (boss.isGrounded && (deathAnimTimer % 35 === 0)) {
-                    boss.vy = -6.5; // Boss victory jumps / hops for joy over player
+                    boss.vy = -6.5; 
                 }
 
                 if (deathAnimTimer <= 0) {
@@ -671,6 +740,10 @@
                 laser.x += laser.vx;
                 if (laser.x < boss.x + boss.width && laser.x + laser.width > boss.x &&
                     laser.y < boss.y + boss.height && laser.y + laser.height > boss.y) {
+                    
+                    hitStopFrames = 2;
+                    spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'blood', 10);
+
                     let laserDmg = (15 + stats.level * 3) * player.damageMultiplier;
                     boss.hp -= laserDmg;
                     checkBossPhase2();
@@ -688,6 +761,11 @@
             });
 
             applyPhysics(player);
+            // Check player landing dust effect
+            if (!playerWasGrounded && player.isGrounded) {
+                spawnParticles(player.x + player.width / 2, player.y + player.height, 'dust', 5);
+            }
+            playerWasGrounded = player.isGrounded;
 
             if (player.isDodging) {
                 player.x += player.facing * 8.5;
@@ -715,6 +793,11 @@
             }
 
             applyPhysics(boss);
+            // Check boss landing dust effect
+            if (!bossWasGrounded && boss.isGrounded) {
+                spawnParticles(boss.x + boss.width / 2, boss.y + boss.height, 'dust', 7);
+            }
+            bossWasGrounded = boss.isGrounded;
 
             let distanceToPlayer = Math.abs(boss.x - player.x);
             let verticalDistance = Math.abs(boss.y - player.y);
@@ -777,6 +860,12 @@
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
                     let isJumpingOver = player.y + player.height < boss.y + 25; 
                     if (!player.isDodging && !isJumpingOver && !boss.hasDealtDamage) {
+                        
+                        // Hit-Stop & Particle Feedback on player damage taken
+                        hitStopFrames = 3;
+                        spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 'blood', 14);
+                        spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 'spark', 6);
+
                         let baseDmg = 100 / 5;
                         let damageToPlayer = baseDmg * Math.pow(2, stats.wins);
                         
@@ -954,6 +1043,15 @@
             ctx.lineTo(canvas.width, groundLevel);
             ctx.stroke();
 
+            // --- DRAW PARTICLES ---
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+                ctx.restore();
+            });
+
             // --- DRAW LASERS ---
             lasers.forEach(laser => {
                 ctx.fillStyle = 'rgba(212, 175, 55, 0.4)';
@@ -1024,7 +1122,6 @@
             ctx.translate(boss.x, boss.y);
 
             if (gameState === 'DEATH_ANIMATION') {
-                // Triumphant flashing color during boss victory celebration
                 ctx.fillStyle = (Math.floor(Date.now() / 120) % 2 === 0) ? '#d4af37' : '#be5046';
             } else if (boss.state === 'CHARGING') {
                 ctx.fillStyle = '#e06c75'; 
@@ -1048,7 +1145,6 @@
             ctx.fillRect(26, 20, 8, 4);
 
             if (gameState === 'DEATH_ANIMATION') {
-                // Boss raises weapon high in celebration above head
                 ctx.fillStyle = '#d4af37';
                 ctx.fillRect(16, -16, 16, 32);
             } else {
