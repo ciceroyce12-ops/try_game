@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Colosseum of Fools Edition</title>
+    <title>Souls-Like Mini RPG - Portrait Edition</title>
     <style>
         * {
             box-sizing: border-box;
             touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
         }
         body {
             background-color: #120d09;
@@ -16,38 +18,45 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            justify-content: flex-start;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            padding: 8px 5px;
+            overflow-x: hidden;
         }
         .header-container {
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            width: 100%;
         }
         h1 {
             margin: 0;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
+            font-size: 1rem;
+            letter-spacing: 1px;
             color: #d4af37;
             text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+            text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
         }
         #stats {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #b89768;
-            margin-top: 3px;
+            margin-top: 2px;
         }
         .canvas-container {
             position: relative;
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            justify-content: center;
         }
         canvas {
-            border: 3px solid #3d2b1f;
+            border: 2px solid #3d2b1f;
             background: linear-gradient(to bottom, #2b1d14, #18100b);
-            box-shadow: 0 0 35px rgba(212, 175, 55, 0.2);
-            max-width: 98vw;
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+            width: 100%;
             height: auto;
             display: block;
+            border-radius: 6px;
         }
         /* Pause & Victory Overlay */
         #overlay-screen {
@@ -56,129 +65,145 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(18, 13, 9, 0.92);
+            background: rgba(18, 13, 9, 0.94);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
             z-index: 10;
-            padding: 20px;
+            padding: 15px;
+            border-radius: 6px;
         }
         #overlay-screen h2 {
-            margin: 0 0 15px 0;
-            font-size: 2rem;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
         }
         #overlay-screen p {
-            margin: 0 0 20px 0;
-            font-size: 1.1rem;
+            margin: 0 0 15px 0;
+            font-size: 0.95rem;
             color: #61afef;
-            text-shadow: 0 0 10px rgba(97, 175, 239, 0.4);
         }
         .upgrade-container {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 280px;
         }
         .btn-upgrade {
             background-color: #2b1d14;
             color: #e0d0c0;
             border: 2px solid #d4af37;
-            padding: 12px 20px;
-            font-size: 0.95rem;
-            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
-            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
         }
         .btn-upgrade:active {
             background-color: #d4af37;
             color: #120d09;
         }
         #death-tutorial-text {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: #c8b090;
-            max-width: 450px;
-            line-height: 1.4;
-            margin: 0 0 20px 0;
+            max-width: 320px;
+            line-height: 1.3;
+            margin: 0 0 15px 0;
             display: none;
             background: #1e140e;
-            padding: 12px 18px;
-            border-radius: 8px;
+            padding: 10px 14px;
+            border-radius: 6px;
             border: 1px dashed #543d2b;
+            text-align: left;
         }
         #btn-restart {
             background-color: #d4af37;
             color: #120d09;
             border: none;
-            padding: 12px 30px;
-            font-size: 1rem;
-            border-radius: 8px;
+            padding: 10px 25px;
+            font-size: 0.95rem;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
             display: none;
         }
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            margin-top: 10px;
+        
+        /* Portrait Split-Thumb Mobile Controls */
+        .controls-wrapper {
+            display: flex;
+            justify-content: space-between;
             width: 100%;
-            max-width: 500px;
-            padding: 0 10px;
+            max-width: 420px;
+            margin-top: 10px;
+            padding: 0 2px;
+            gap: 8px;
         }
-        button {
+        .control-group {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+        }
+        .control-group.actions {
+            flex: 1.4;
+        }
+        button.control-btn {
             background-color: #21160f;
             color: #e0d0c0;
             border: 1px solid #453224;
-            padding: 12px 0;
-            font-size: 0.9rem;
+            padding: 22px 0;
+            font-size: 0.85rem;
             border-radius: 8px;
             cursor: pointer;
-            user-select: none;
             font-weight: bold;
+            flex: 1;
         }
-        button:active {
+        button.control-btn:active {
             background-color: #453224;
         }
-        .btn-jump { background-color: #483824; }
-        .btn-dodge { background-color: #243848; }
-        .btn-attack { background-color: #592424; }
+        .btn-jump { background-color: #382c1d; border-color: #634d31; }
+        .btn-dodge { background-color: #1c2c38; border-color: #315263; }
+        .btn-attack { background-color: #481d1d; border-color: #733131; }
     </style>
 </head>
 <body>
 
     <div class="header-container">
-        <h1>Colosseum of Fools - Trial by Death</h1>
-        <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span>/10 | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
+        <h1>Colosseum of Fools</h1>
+        <div id="stats">Lvl: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span>/10 | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
     <div class="canvas-container">
         <canvas id="gameCanvas" width="800" height="350"></canvas>
         <div id="overlay-screen">
-            <h2 id="overlay-title">Level 1 Beaten, Choose Upgrade:</h2>
+            <h2 id="overlay-title">Choose Upgrade:</h2>
             <div id="upgrade-options" class="upgrade-container">
                 <button class="btn-upgrade" id="btn-dmg-up">⚔️ UPGRADE DAMAGE (+50%)</button>
-                <button class="btn-upgrade" id="btn-hp-up">🛡️ UPGRADE HEALTH (+50 Max HP & Heal)</button>
-                <button class="btn-upgrade" id="btn-stamina-up">⚡ UPGRADE STAMINA (+5% & Refill)</button>
+                <button class="btn-upgrade" id="btn-hp-up">🛡️ UPGRADE HEALTH (+50 HP & Heal)</button>
+                <button class="btn-upgrade" id="btn-stamina-up">⚡ UPGRADE STAMINA (+15 & Refill)</button>
             </div>
             <div id="death-tutorial-text"></div>
             <button id="btn-restart">TRY AGAIN?</button>
-            <p id="overlay-credit" style="display:none; margin-top: 15px;">made by Ciceroyce</p>
+            <p id="overlay-credit" style="display:none; margin-top: 10px; font-size: 0.85rem;">made by Ciceroyce</p>
         </div>
     </div>
 
-    <div class="controls">
-        <button id="btn-left">←</button>
-        <button id="btn-right">→</button>
-        <button id="btn-jump" class="btn-jump">JUMP</button>
-        <button id="btn-dodge" class="btn-dodge">DODGE</button>
-        <button id="btn-attack" class="btn-attack">HIT</button>
+    <!-- Portrait Optimized Split Controls (Thumbs Ergonomics) -->
+    <div class="controls-wrapper">
+        <div class="control-group">
+            <button id="btn-left" class="control-btn">←</button>
+            <button id="btn-right" class="control-btn">→</button>
+        </div>
+        <div class="control-group actions">
+            <button id="btn-jump" class="control-btn btn-jump">JUMP</button>
+            <button id="btn-dodge" class="control-btn btn-dodge">DODGE</button>
+            <button id="btn-attack" class="control-btn btn-attack">HIT</button>
+        </div>
     </div>
 
     <script>
@@ -274,7 +299,7 @@
             "🗣️ 'GLORY TO THE NEW HERO OF THE COLOSSEUM!'",
             "🗣️ 'I-I CANNOT BELIEVE MY EYES... HE WON?!'",
             "🗣️ 'THE KING IS DEAD! ALL HAIL THE CHAMPION!'",
-            "🗣️ 'A GLORIOUS UPSET! INCREDIBLE! THINGS ARE CHANGING!'",
+            "🗣️ 'A GLORIOUS UPSET! INCREDIBLE!'",
             "🗣️ 'WE EAT LIKE KINGS TONIGHT! WHAT A FIGHT!'"
         ];
 
@@ -362,9 +387,7 @@
 
         window.addEventListener('keydown', e => {
             if (gameState !== 'PLAYING') {
-                if (e.key === 'Enter') {
-                    if (gameState === 'DEATH') restartGameAfterDeath();
-                }
+                if (e.key === 'Enter' && gameState === 'DEATH') restartGameAfterDeath();
                 return;
             }
             if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
@@ -378,14 +401,22 @@
             if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
         });
 
-        document.getElementById('btn-left').addEventListener('touchstart', () => { if(gameState==='PLAYING') keys.left = true; });
-        document.getElementById('btn-left').addEventListener('touchend', () => keys.left = false);
-        document.getElementById('btn-right').addEventListener('touchstart', () => { if(gameState==='PLAYING') keys.right = true; });
-        document.getElementById('btn-right').addEventListener('touchend', () => keys.right = false);
-        document.getElementById('btn-jump').addEventListener('click', () => { if(gameState==='PLAYING') triggerJump(); });
-        document.getElementById('btn-dodge').addEventListener('click', () => { if(gameState==='PLAYING') triggerDodge(); });
-        document.getElementById('btn-attack').addEventListener('click', () => { if(gameState==='PLAYING') triggerAttack(); });
-        
+        // Touch event bindings for split portrait layout
+        const bindTouch = (id, startAction, endAction) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState==='PLAYING') startAction(); });
+            el.addEventListener('touchend', (e) => { e.preventDefault(); if(endAction) endAction(); });
+            el.addEventListener('mousedown', (e) => { e.preventDefault(); if(gameState==='PLAYING') startAction(); });
+            el.addEventListener('mouseup', (e) => { e.preventDefault(); if(endAction) endAction(); });
+        };
+
+        bindTouch('btn-left', () => keys.left = true, () => keys.left = false);
+        bindTouch('btn-right', () => keys.right = true, () => keys.right = false);
+        bindTouch('btn-jump', () => triggerJump());
+        bindTouch('btn-dodge', () => triggerDodge());
+        bindTouch('btn-attack', () => triggerAttack());
+
         document.getElementById('btn-dmg-up').addEventListener('click', () => applyUpgrade('damage'));
         document.getElementById('btn-hp-up').addEventListener('click', () => applyUpgrade('health'));
         document.getElementById('btn-stamina-up').addEventListener('click', () => applyUpgrade('stamina'));
@@ -435,7 +466,6 @@
                 if (hitBoxX < boss.x + boss.width && hitBoxX + hitBoxWidth > boss.x &&
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
                     
-                    // Hit-Stop & Particle Feedback on successful hit
                     hitStopFrames = 3; 
                     spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'blood', 12);
                     spawnParticles(hitBoxX + hitBoxWidth / 2, player.y + 20, 'spark', 8);
@@ -479,7 +509,7 @@
 
             if (stats.wins >= 10) {
                 gameState = 'VICTORY';
-                overlayTitle.innerText = "YOU WIN - COLOSSEUM LEGEND";
+                overlayTitle.innerText = "YOU WIN - LEGEND";
                 overlayTitle.style.color = "#d4af37";
                 upgradeOptions.style.display = "none";
                 deathTutorialText.style.display = "none";
@@ -490,7 +520,7 @@
             }
 
             gameState = 'WIN_PAUSE';
-            overlayTitle.innerText = `Level ${stats.wins} Beaten! Choose Upgrade:`;
+            overlayTitle.innerText = `Level ${stats.wins} Beaten! Upgrade:`;
             overlayTitle.style.color = "#d4af37";
             upgradeOptions.style.display = "flex";
             deathTutorialText.style.display = "none";
@@ -506,7 +536,7 @@
                 player.maxHp += 50;
                 player.hp = player.maxHp; 
             } else if (type === 'stamina') {
-                player.maxStamina = Math.round(player.maxStamina * 1.05 + 15);
+                player.maxStamina += 15;
                 player.stamina = player.maxStamina;
             }
             resumeGame();
@@ -543,10 +573,10 @@
             deathDisplay.innerText = stats.deaths;
 
             gameState = 'DEATH_ANIMATION';
-            deathAnimTimer = 240; // Exactly 4 seconds at 60 FPS
+            deathAnimTimer = 240; 
             player.vy = -7; 
             player.rotation = 0;
-            boss.state = 'CELEBRATING'; // Boss victory animation state
+            boss.state = 'CELEBRATING'; 
             boss.vx = 0;
             activeCrowdText = loseDialogues[Math.floor(Math.random() * loseDialogues.length)];
             crowdTimer = 140;
@@ -560,15 +590,13 @@
 
             const tutorialQuotes = [
                 "💡 **Pro Tip:** When the boss drops to 50% HP, Phase 2 awakens with dual weapons and +25% speed!",
-                "💡 **Pro Tip:** Time your dodge roll correctly to phase through incoming boss charges without taking damage.",
-                "💡 **Pro Tip:** Land 4 consecutive attacks on the boss to automatically shoot a powerful ranged laser beam!",
-                "💡 **Pro Tip:** Watch your stamina bar! Running out completely disables running speed and forces you to crawl.",
-                "💡 **Pro Tip:** Use the tiered pyramid platforms to jump over the boss when it corners you.",
-                "💡 **Pro Tip:** Want to send bug reports or feedback? Check out Ciceroyce's contact page: <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>https://ciceroyce12-ops.github.io/Contact_Me/</a>"
+                "💡 **Pro Tip:** Time your dodge roll to phase through boss charges safely.",
+                "💡 **Pro Tip:** Land 4 consecutive hits to fire a powerful ranged laser beam!",
+                "💡 **Pro Tip:** Watch your stamina bar! Empty stamina disables movement speed.",
+                "💡 **Pro Tip:** Use pyramid platforms to jump over aggressive charges."
             ];
 
-            const randomQuote = tutorialQuotes[Math.floor(Math.random() * tutorialQuotes.length)];
-            deathTutorialText.innerHTML = randomQuote;
+            deathTutorialText.innerHTML = tutorialQuotes[Math.floor(Math.random() * tutorialQuotes.length)];
             deathTutorialText.style.display = "block";
 
             btnRestart.style.display = "block";
@@ -642,20 +670,18 @@
         }
 
         function update() {
-            // Handle Hit-Stop (Hitlag) Freeze Frames
             if (hitStopFrames > 0) {
                 hitStopFrames--;
                 return;
             }
 
-            // Update Particle Systems continuously
             particles.forEach((p, index) => {
                 p.x += p.vx;
                 p.y += p.vy;
                 if (p.type === 'dust') {
                     p.vy += 0.04;
                 } else {
-                    p.vy += 0.2; // gravity for blood/sparks
+                    p.vy += 0.2; 
                 }
                 p.life++;
                 p.alpha = 1 - (p.life / p.maxLife);
@@ -676,7 +702,6 @@
                     player.rotation = Math.PI / 2; 
                 }
 
-                // Boss celebration animation logic during the 4-second delay
                 applyPhysics(boss);
                 if (boss.isGrounded && (deathAnimTimer % 35 === 0)) {
                     boss.vy = -6.5; 
@@ -706,9 +731,7 @@
 
             if (gameState !== 'PLAYING') return;
 
-            if (crowdTimer > 0) {
-                crowdTimer--;
-            }
+            if (crowdTimer > 0) crowdTimer--;
 
             let isMoving = (keys.left || keys.right) && !player.isDodging;
             if (!isMoving && player.stamina < player.maxStamina) {
@@ -724,16 +747,11 @@
                 }
             }
 
-            // Handle player trail for dodge roll ghost effect
             if (player.isDodging) {
                 playerTrail.push({ x: player.x, y: player.y, facing: player.facing });
-                if (playerTrail.length > 5) {
-                    playerTrail.shift();
-                }
-            } else {
-                if (playerTrail.length > 0) {
-                    playerTrail.shift();
-                }
+                if (playerTrail.length > 5) playerTrail.shift();
+            } else if (playerTrail.length > 0) {
+                playerTrail.shift();
             }
 
             lasers.forEach((laser, index) => {
@@ -755,13 +773,10 @@
                         winDelayTimer = 120;
                     }
                 }
-                if (laser.x < 0 || laser.x > canvas.width) {
-                    lasers.splice(index, 1);
-                }
+                if (laser.x < 0 || laser.x > canvas.width) lasers.splice(index, 1);
             });
 
             applyPhysics(player);
-            // Check player landing dust effect
             if (!playerWasGrounded && player.isGrounded) {
                 spawnParticles(player.x + player.width / 2, player.y + player.height, 'dust', 5);
             }
@@ -773,15 +788,8 @@
                 if (player.dodgeTimer <= 0) player.isDodging = false;
             } else {
                 let currentSpeed = player.stamina <= 0 ? player.speed * 0.25 : player.speed;
-
-                if (keys.left) {
-                    player.x -= currentSpeed;
-                    player.facing = -1;
-                }
-                if (keys.right) {
-                    player.x += currentSpeed;
-                    player.facing = 1;
-                }
+                if (keys.left) { player.x -= currentSpeed; player.facing = -1; }
+                if (keys.right) { player.x += currentSpeed; player.facing = 1; }
             }
 
             if (player.x < 15) player.x = 15;
@@ -793,7 +801,6 @@
             }
 
             applyPhysics(boss);
-            // Check boss landing dust effect
             if (!bossWasGrounded && boss.isGrounded) {
                 spawnParticles(boss.x + boss.width / 2, boss.y + boss.height, 'dust', 7);
             }
@@ -817,17 +824,13 @@
                     let platCenter = currentPlat.x + currentPlat.width / 2;
                     let dir = player.x < platCenter ? -1 : 1;
                     boss.x += dir * moveSpeed;
-                } else {
-                    if (Math.abs(horizontalDiff) > 5) {
-                        boss.x += Math.sign(horizontalDiff) * moveSpeed;
-                    }
+                } else if (Math.abs(horizontalDiff) > 5) {
+                    boss.x += Math.sign(horizontalDiff) * moveSpeed;
                 }
 
-                if (player.y < boss.y - 20 && boss.isGrounded) {
-                    if (Math.abs(horizontalDiff) < 250 && Math.random() < 0.1) {
-                        boss.vy = boss.jumpForce;
-                        boss.isGrounded = false;
-                    }
+                if (player.y < boss.y - 20 && boss.isGrounded && Math.abs(horizontalDiff) < 250 && Math.random() < 0.1) {
+                    boss.vy = boss.jumpForce;
+                    boss.isGrounded = false;
                 }
 
                 let speedDivisor = boss.hasSecondWeapon ? 1.25 : 1;
@@ -861,7 +864,6 @@
                     let isJumpingOver = player.y + player.height < boss.y + 25; 
                     if (!player.isDodging && !isJumpingOver && !boss.hasDealtDamage) {
                         
-                        // Hit-Stop & Particle Feedback on player damage taken
                         hitStopFrames = 3;
                         spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 'blood', 14);
                         spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 'spark', 6);
@@ -872,14 +874,11 @@
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
 
-                        // Trigger Screen Shake & Mocking Audience Dialogue on Hit!
                         shakeTimer = 16;
                         activeCrowdText = mockDialogues[Math.floor(Math.random() * mockDialogues.length)];
                         crowdTimer = 140;
 
-                        if (player.hp <= 0) {
-                            triggerDeathSequence();
-                        }
+                        if (player.hp <= 0) triggerDeathSequence();
                     }
                 }
                 if (Math.abs(boss.vx) > 0) {
@@ -904,15 +903,11 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
-            // Apply Screen Shake Offset
             if (shakeTimer > 0) {
                 shakeTimer--;
-                let offsetX = (Math.random() - 0.5) * shakeIntensity;
-                let offsetY = (Math.random() - 0.5) * shakeIntensity;
-                ctx.translate(offsetX, offsetY);
+                ctx.translate((Math.random() - 0.5) * shakeIntensity, (Math.random() - 0.5) * shakeIntensity);
             }
 
-            // --- BACKGROUND ---
             let bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             bgGradient.addColorStop(0, '#2b1e14');
             bgGradient.addColorStop(0.5, '#1d140e');
@@ -920,7 +915,6 @@
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Light Rays
             ctx.fillStyle = 'rgba(212, 175, 55, 0.04)';
             ctx.beginPath();
             ctx.moveTo(100, 0); ctx.lineTo(200, 0); ctx.lineTo(350, canvas.height); ctx.lineTo(200, canvas.height);
@@ -929,23 +923,16 @@
             ctx.moveTo(450, 0); ctx.lineTo(550, 0); ctx.lineTo(700, canvas.height); ctx.lineTo(550, canvas.height);
             ctx.fill();
 
-            // Massive Stone Pillars
             ctx.fillStyle = '#17100b';
             ctx.fillRect(0, 0, 75, canvas.height);
             ctx.fillRect(canvas.width - 75, 0, 75, canvas.height);
 
-            ctx.fillStyle = '#2b1e14';
-            ctx.fillRect(0, 30, 85, 30);
-            ctx.fillRect(canvas.width - 85, 30, 85, 30);
-
-            // --- SPECTATOR TIERS ---
             ctx.fillStyle = '#1f150f';
             ctx.fillRect(75, 50, canvas.width - 150, 60);
             ctx.strokeStyle = '#3d2b1f';
             ctx.lineWidth = 2;
             ctx.strokeRect(75, 50, canvas.width - 150, 60);
 
-            // Central Crest
             ctx.fillStyle = '#3d2b1f';
             ctx.beginPath();
             ctx.arc(canvas.width / 2, 72, 22, 0, Math.PI * 2);
@@ -954,7 +941,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // --- BUG SPECTATORS ---
             let globalBounce = Math.sin(Date.now() / 120) * 4;
             audienceMembers.forEach((bug) => {
                 let bounce = Math.sin(Date.now() / 80 + bug.phase) * 4 + (crowdTimer > 0 ? globalBounce * 1.5 : 0);
@@ -970,43 +956,11 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                if (bug.type === 0) {
-                    ctx.fillStyle = '#d4af37';
-                    ctx.beginPath();
-                    ctx.moveTo(bx - s * 0.5, by - s);
-                    ctx.lineTo(bx - s * 0.8, by - s * 1.8);
-                    ctx.lineTo(bx - s * 0.2, by - s * 1.2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.moveTo(bx + s * 0.5, by - s);
-                    ctx.lineTo(bx + s * 0.8, by - s * 1.8);
-                    ctx.lineTo(bx + s * 0.2, by - s * 1.2);
-                    ctx.fill();
-                } else if (bug.type === 1) {
-                    ctx.fillStyle = '#453224';
-                    ctx.fillRect(bx - s * 0.8, by - s * 0.4, s * 1.6, s * 0.8);
-                } else if (bug.type === 2) {
-                    ctx.fillStyle = '#d4af37';
-                    ctx.fillRect(bx - s * 0.6, by - s * 1.4, s * 1.2, s * 0.4);
-                } else if (bug.type === 3) {
-                    ctx.fillStyle = '#e06c75';
-                    ctx.beginPath();
-                    ctx.moveTo(bx, by - s * 1.6);
-                    ctx.lineTo(bx - s * 0.4, by - s);
-                    ctx.lineTo(bx + s * 0.4, by - s);
-                    ctx.fill();
-                } else {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(bx - s * 0.6, by - s * 0.5, s * 0.5, s * 0.5);
-                    ctx.fillRect(bx + s * 0.1, by - s * 0.5, s * 0.5, s * 0.5);
-                }
-
                 ctx.fillStyle = crowdTimer > 0 ? '#e06c75' : '#120d09';
                 ctx.fillRect(bx - s * 0.4, by - s * 0.2, s * 0.3, s * 0.3);
                 ctx.fillRect(bx + s * 0.1, by - s * 0.2, s * 0.3, s * 0.3);
             });
 
-            // Active Crowd Shout / Dialogue Banner
             if (crowdTimer > 0) {
                 ctx.fillStyle = 'rgba(18, 13, 9, 0.9)';
                 ctx.fillRect(canvas.width / 2 - 210, 36, 420, 30);
@@ -1017,11 +971,10 @@
                 ctx.fillStyle = '#d4af37';
                 ctx.font = 'bold 13px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(activeCrowdText, canvas.width / 2, 55 + Math.sin(Date.now() / 30) * 2);
+                ctx.fillText(activeCrowdText, canvas.width / 2, 55);
                 ctx.textAlign = 'left';
             }
 
-            // --- DRAW 4-TIER PYRAMID PLATFORMS ---
             platforms.forEach(plat => {
                 ctx.fillStyle = '#2b1e14';
                 ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
@@ -1035,7 +988,6 @@
                 ctx.stroke();
             });
 
-            // Ground Floor Arena Stone Rim
             ctx.strokeStyle = '#694f38';
             ctx.lineWidth = 3;
             ctx.beginPath();
@@ -1043,7 +995,6 @@
             ctx.lineTo(canvas.width, groundLevel);
             ctx.stroke();
 
-            // --- DRAW PARTICLES ---
             particles.forEach(p => {
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, p.alpha);
@@ -1052,7 +1003,6 @@
                 ctx.restore();
             });
 
-            // --- DRAW LASERS ---
             lasers.forEach(laser => {
                 ctx.fillStyle = 'rgba(212, 175, 55, 0.4)';
                 ctx.fillRect(laser.x - 4, laser.y - 4, laser.width + 8, laser.height + 8);
@@ -1062,20 +1012,15 @@
                 ctx.fillRect(laser.x, laser.y + 3, laser.width, 4);
             });
 
-            // --- DRAW PLAYER TRAIL (GHOST EFFECT) ---
             playerTrail.forEach((trail, index) => {
                 ctx.save();
-                let alpha = (index + 1) / (playerTrail.length + 1) * 0.35;
-                ctx.globalAlpha = alpha;
+                ctx.globalAlpha = (index + 1) / (playerTrail.length + 1) * 0.35;
                 ctx.fillStyle = '#d4af37';
                 ctx.fillRect(trail.x + 4, trail.y + 14, 20, 22);
                 ctx.fillRect(trail.x + 4, trail.y + 2, 20, 14);
-                ctx.fillRect(trail.x + 2, trail.y - 6, 6, 10);
-                ctx.fillRect(trail.x + 20, trail.y - 6, 6, 10);
                 ctx.restore();
             });
 
-            // --- DRAW CUSTOM PLAYER SPRITE ---
             ctx.save();
             ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
             ctx.rotate(player.rotation);
@@ -1084,54 +1029,25 @@
             let pDrawX = player.x;
             let pDrawY = player.y;
 
-            if (player.isDodging) {
-                ctx.fillStyle = 'rgba(212, 175, 55, 0.4)';
-                ctx.fillRect(pDrawX - 6, pDrawY, player.width, player.height);
-            }
-
-            if (gameState === 'DEATH_ANIMATION') {
-                ctx.fillStyle = '#e06c75'; 
-            } else if (player.stamina <= 0) {
-                ctx.fillStyle = '#d19a66'; 
-            } else {
-                ctx.fillStyle = player.isAttacking ? '#d19a66' : '#e0d0c0'; 
-            }
-            
+            ctx.fillStyle = gameState === 'DEATH_ANIMATION' ? '#e06c75' : (player.stamina <= 0 ? '#d19a66' : (player.isAttacking ? '#d19a66' : '#e0d0c0'));
             ctx.fillRect(pDrawX + 4, pDrawY + 14, 20, 22);
-            ctx.fillStyle = '#e0d0c0';
             ctx.fillRect(pDrawX + 4, pDrawY + 2, 20, 14);
-            ctx.fillStyle = '#e0d0c0';
             ctx.fillRect(pDrawX + 2, pDrawY - 6, 6, 10);
             ctx.fillRect(pDrawX + 20, pDrawY - 6, 6, 10);
 
             ctx.fillStyle = '#120d09';
-            let visorX = player.facing > 0 ? pDrawX + 13 : pDrawX + 7;
-            ctx.fillRect(visorX, pDrawY + 6, 6, 4);
+            ctx.fillRect(player.facing > 0 ? pDrawX + 13 : pDrawX + 7, pDrawY + 6, 6, 4);
 
             if (player.isAttacking) {
                 ctx.fillStyle = '#ffffff';
                 let swordX = player.facing > 0 ? pDrawX + 24 : pDrawX - 45;
                 ctx.fillRect(swordX, pDrawY + 16, 45, 6);
-                ctx.fillStyle = 'rgba(212, 175, 55, 0.6)';
-                ctx.fillRect(swordX - 4, pDrawY + 12, 53, 14);
             }
             ctx.restore();
 
-            // --- DRAW CUSTOM BOSS SPRITE & VICTORY ANIMATION ---
             ctx.save();
             ctx.translate(boss.x, boss.y);
-
-            if (gameState === 'DEATH_ANIMATION') {
-                ctx.fillStyle = (Math.floor(Date.now() / 120) % 2 === 0) ? '#d4af37' : '#be5046';
-            } else if (boss.state === 'CHARGING') {
-                ctx.fillStyle = '#e06c75'; 
-            } else if (boss.state === 'ATTACKING') {
-                ctx.fillStyle = '#be5046';
-            } else if (boss.state === 'DODGING') {
-                ctx.fillStyle = '#e5c07b'; 
-            } else {
-                ctx.fillStyle = boss.hasSecondWeapon ? '#6b3a3a' : '#544033'; 
-            }
+            ctx.fillStyle = gameState === 'DEATH_ANIMATION' ? '#d4af37' : (boss.state === 'CHARGING' ? '#e06c75' : (boss.state === 'ATTACKING' ? '#be5046' : (boss.hasSecondWeapon ? '#6b3a3a' : '#544033')));
             ctx.fillRect(6, 12, 36, 53);
 
             ctx.fillStyle = '#b89768';
@@ -1140,63 +1056,53 @@
             ctx.moveTo(42, 12); ctx.lineTo(48, 0); ctx.lineTo(36, 12);
             ctx.fill();
 
-            ctx.fillStyle = gameState === 'DEATH_ANIMATION' ? '#d4af37' : (boss.state === 'CHARGING' ? '#ffffff' : '#e06c75');
+            ctx.fillStyle = boss.state === 'CHARGING' ? '#ffffff' : '#e06c75';
             ctx.fillRect(14, 20, 8, 4);
             ctx.fillRect(26, 20, 8, 4);
 
-            if (gameState === 'DEATH_ANIMATION') {
-                ctx.fillStyle = '#d4af37';
-                ctx.fillRect(16, -16, 16, 32);
-            } else {
-                ctx.fillStyle = '#21160f';
-                ctx.fillRect(boss.x > player.x ? -14 : 42, 25, 14, 35);
-
-                if (boss.hasSecondWeapon) {
-                    ctx.fillStyle = '#e06c75';
-                    ctx.fillRect(boss.x > player.x ? 46 : -22, 20, 12, 40);
-                }
+            ctx.fillStyle = '#21160f';
+            ctx.fillRect(boss.x > player.x ? -14 : 42, 25, 14, 35);
+            if (boss.hasSecondWeapon) {
+                ctx.fillStyle = '#e06c75';
+                ctx.fillRect(boss.x > player.x ? 46 : -22, 20, 12, 40);
             }
-
             ctx.restore();
 
-            // --- PHASE 2 CUTSCENE OVERLAY EFFECT ---
             if (gameState === 'PHASE2_CUTSCENE') {
-                ctx.fillStyle = 'rgba(18, 13, 9, 0.82)';
+                ctx.fillStyle = 'rgba(18, 13, 9, 0.85)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
                 ctx.fillStyle = '#d4af37';
-                ctx.font = 'bold 22px sans-serif';
+                ctx.font = 'bold 18px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText("⚠️ PHASE 2: DUAL WEAPONS AWAKENED! ⚠️", canvas.width / 2, canvas.height / 2 - 10);
-                
+                ctx.fillText("⚠️ PHASE 2: DUAL WEAPONS! ⚠️", canvas.width / 2, canvas.height / 2 - 10);
                 ctx.fillStyle = '#b89768';
-                ctx.font = '14px sans-serif';
-                ctx.fillText("Boss speed & combo fury increased by 25%!", canvas.width / 2, canvas.height / 2 + 20);
+                ctx.font = '12px sans-serif';
+                ctx.fillText("Boss speed & fury increased!", canvas.width / 2, canvas.height / 2 + 15);
                 ctx.textAlign = 'left';
             }
 
-            // --- UI BARS ---
+            // UI Bars
             ctx.fillStyle = '#21160f';
-            ctx.fillRect(20, 20, 160, 12);
+            ctx.fillRect(15, 15, 130, 10);
             ctx.fillStyle = '#98c379';
-            ctx.fillRect(20, 20, Math.max(0, (player.hp / player.maxHp) * 160), 12);
+            ctx.fillRect(15, 15, Math.max(0, (player.hp / player.maxHp) * 130), 10);
             ctx.fillStyle = '#fff';
-            ctx.font = '10px sans-serif';
-            ctx.fillText(`HP: ${Math.max(0, Math.floor(player.hp))}/${player.maxHp}`, 25, 30);
+            ctx.font = '9px sans-serif';
+            ctx.fillText(`HP: ${Math.max(0, Math.floor(player.hp))}`, 20, 23);
 
             ctx.fillStyle = '#21160f';
-            ctx.fillRect(20, 36, 110, 8);
+            ctx.fillRect(15, 28, 90, 6);
             ctx.fillStyle = player.stamina <= 0 ? '#e06c75' : '#d4af37';
-            ctx.fillRect(20, 36, Math.min(110, (player.stamina / player.maxStamina) * 110), 8);
+            ctx.fillRect(15, 28, Math.min(90, (player.stamina / player.maxStamina) * 90), 6);
 
             ctx.fillStyle = '#21160f';
-            ctx.fillRect(canvas.width - 180, 20, 160, 12);
+            ctx.fillRect(canvas.width - 145, 15, 130, 10);
             ctx.fillStyle = boss.hasSecondWeapon ? '#e06c75' : '#be5046';
-            ctx.fillRect(canvas.width - 180, 20, Math.max(0, (boss.hp / boss.maxHp) * 160), 12);
+            ctx.fillRect(canvas.width - 145, 15, Math.max(0, (boss.hp / boss.maxHp) * 130), 10);
             ctx.fillStyle = '#fff';
-            ctx.fillText(`BOSS HP ${boss.hasSecondWeapon ? '(P2)' : ''}`, canvas.width - 150, 30);
+            ctx.fillText(`BOSS ${boss.hasSecondWeapon ? 'P2' : ''}`, canvas.width - 120, 23);
 
-            ctx.restore(); // Restore context after screen shake
+            ctx.restore();
         }
 
         function gameLoop() {
