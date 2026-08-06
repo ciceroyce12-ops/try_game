@@ -467,6 +467,19 @@
         let playerWasGrounded = true;
         let bossWasGrounded = true;
 
+        const bossNames = [
+            "Valen, the Rust-Bound Gladiator",
+            "Gideon, the Blood-Smeared Jester",
+            "Korg, the Chained Pit-Beast",
+            "Lady Isolda, the Executioner of Fools",
+            "Malakor, the One-Eyed Arena Champion",
+            "Drakul, the Ash-Crowned Brute",
+            "Varis, the Warden of the Broken Gates",
+            "Morvath, the Sovereign of Shattered Blades",
+            "Valerius, the Dread Monarch of the Pit",
+            "The First Fool, Modred"
+        ];
+
         const groundLevel = 290;
         const platforms = [
             { x: 140, y: 230, width: 520, height: 12 }, 
@@ -1327,12 +1340,17 @@
             ctx.fillStyle = player.stamina <= 0 ? '#61afef' : '#d4af37';
             ctx.fillRect(15, 28, Math.min(90, (player.stamina / player.maxStamina) * 90), 6);
 
+            // Boss HP & Name
             ctx.fillStyle = '#21160f';
             ctx.fillRect(canvas.width - 145, 15, 130, 10);
             ctx.fillStyle = boss.hasSecondWeapon ? '#e06c75' : '#be5046';
             ctx.fillRect(canvas.width - 145, 15, Math.max(0, (boss.hp / boss.maxHp) * 130), 10);
+            
             ctx.fillStyle = '#fff';
-            ctx.fillText(`${boss.hasSecondWeapon ? t.bossP2 : t.bossText}`, canvas.width - 120, 23);
+            ctx.textAlign = 'right';
+            let currentBossName = bossNames[Math.min(stats.level - 1, 9)];
+            ctx.fillText(`${currentBossName}${boss.hasSecondWeapon ? ' (P2)' : ''}`, canvas.width - 15, 11);
+            ctx.textAlign = 'left';
 
             ctx.restore();
         }
