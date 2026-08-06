@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Pyramid Platform Edition</title>
+    <title>Souls-Like Mini RPG - Colosseum Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -42,7 +42,7 @@
         }
         canvas {
             border: 3px solid #282c34;
-            background: linear-gradient(to bottom, #121318, #1a1b24);
+            background: linear-gradient(to bottom, #161318, #221c24);
             box-shadow: 0 0 30px rgba(224, 108, 117, 0.15);
             max-width: 98vw;
             height: auto;
@@ -153,7 +153,7 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death</h1>
+        <h1>Trial by Death - Colosseum Arena</h1>
         <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span>/10 | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
@@ -200,7 +200,9 @@
             deaths: 0
         };
 
-        let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, DEATH, VICTORY
+        let gameState = 'PLAYING'; // PLAYING, WIN_DELAY, WIN_PAUSE, DEATH, VICTORY
+        let winDelayTimer = 0;
+        let crowdCheerTimer = 0;
         const groundLevel = 290;
         
         // 4-Tier Pyramid Platforms Setup
@@ -327,17 +329,17 @@
                     let laserDmg = (15 + stats.level * 3) * player.damageMultiplier;
                     let meleeDmg = laserDmg * 2;
                     boss.hp -= meleeDmg;
-                    if (boss.hp <= 0) {
-                        handleWin();
+                    if (boss.hp <= 0 && gameState === 'PLAYING') {
+                        gameState = 'WIN_DELAY';
+                        winDelayTimer = 120; // 2 second delay (at 60fps)
                     }
                 }
 
-                // Boss reflexively attempts a slow dodge backward when player attacks
                 if (boss.state === 'IDLE' && Math.abs(boss.x - player.x) < 220) {
                     boss.state = 'DODGING';
-                    let dodgeDir = boss.x >= player.x ? 1 : -1; // away from player
-                    boss.vx = dodgeDir * 3.2; // slow dodge speed
-                    boss.dodgeTimer = 30; // frames of backward evade
+                    let dodgeDir = boss.x >= player.x ? 1 : -1; 
+                    boss.vx = dodgeDir * 3.2; 
+                    boss.dodgeTimer = 30; 
                 }
 
                 if (player.comboCount >= 4) {
@@ -422,10 +424,9 @@
             overlayTitle.style.color = "#e06c75";
             upgradeOptions.style.display = "none";
 
-            // Random Tutorial Quotes
             const tutorialQuotes = [
                 "💡 **Tutorial Tip:** Keep moving! Standing still regenerates stamina quicker, but running helps you keep a safe distance from sudden boss dashes.",
-                "💡 **Tutorial Tip:** Time your dodge roll (Shift or DODGE button) correctly to phase through incoming boss charges without taking damage.",
+                "💡 **Tutorial Tip:** Time your dodge roll correctly to phase through incoming boss charges without taking damage.",
                 "💡 **Tutorial Tip:** Land 4 consecutive attacks on the boss to automatically shoot a powerful ranged laser beam!",
                 "💡 **Tutorial Tip:** Watch your stamina bar! Running out completely makes you move very slowly and disables jumps and dodges.",
                 "💡 **Tutorial Tip:** Use the tiered pyramid platforms to jump over the boss when it corners you on the ground level.",
@@ -480,7 +481,6 @@
             let feetPrev = prevY + entity.height;
             let feetCurr = entity.y + entity.height;
 
-            // Ground collision
             if (entity.y >= groundLevel - entity.height) {
                 entity.y = groundLevel - entity.height;
                 entity.vy = 0;
@@ -488,7 +488,6 @@
                 return;
             }
 
-            // Platforms collision
             platforms.forEach(plat => {
                 if (entity.vy >= 0 && 
                     feetPrev <= plat.y && 
@@ -503,16 +502,28 @@
         }
 
         function update() {
+            if (gameState === 'WIN_DELAY') {
+                winDelayTimer--;
+                if (winDelayTimer <= 0) {
+                    handleWin();
+                }
+                return;
+            }
+
             if (gameState !== 'PLAYING') return;
+
+            if (crowdCheerTimer > 0) {
+                crowdCheerTimer--;
+            }
 
             let isMoving = (keys.left || keys.right) && !player.isDodging;
 
             if (isMoving) {
-                player.stamina -= 0.8; // More demanding stamina drain on running
+                player.stamina -= 0.8; 
                 if (player.stamina < 0) player.stamina = 0;
             } else {
                 if (player.stamina < player.maxStamina) {
-                    player.stamina += 0.4; // Slower stamina regeneration
+                    player.stamina += 0.4; 
                     if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
                 }
             }
@@ -532,8 +543,9 @@
                     let laserDmg = (15 + stats.level * 3) * player.damageMultiplier;
                     boss.hp -= laserDmg;
                     lasers.splice(index, 1);
-                    if (boss.hp <= 0) {
-                        handleWin();
+                    if (boss.hp <= 0 && gameState === 'PLAYING') {
+                        gameState = 'WIN_DELAY';
+                        winDelayTimer = 120; // 2 seconds delay
                     }
                 }
                 if (laser.x < 0 || laser.x > canvas.width) {
@@ -541,7 +553,6 @@
                 }
             });
 
-            // Apply Player Physics
             applyPhysics(player);
 
             if (player.isDodging) {
@@ -569,7 +580,6 @@
                 if (player.attackTimer <= 0) player.isAttacking = false;
             }
 
-            // Apply Boss Physics
             applyPhysics(boss);
 
             let distanceToPlayer = Math.abs(boss.x - player.x);
@@ -588,11 +598,9 @@
                 let horizontalDiff = player.x - boss.x;
 
                 if (currentPlat) {
-                    // Prevent dropping down from the left side of platforms ("right side is good")
                     if (horizontalDiff < 0 && boss.x <= currentPlat.x + 2) {
                         boss.vx = 0;
                     } else if (horizontalDiff > 0 && boss.x + boss.width >= currentPlat.x + currentPlat.width - 2) {
-                        // Allowed to drop off the right side
                         boss.x += moveSpeed;
                     } else {
                         boss.x += Math.sign(horizontalDiff) * moveSpeed;
@@ -603,7 +611,6 @@
                     }
                 }
 
-                // Jump up if player is higher up
                 if (player.y < boss.y - 20 && boss.isGrounded) {
                     if (Math.abs(horizontalDiff) < 200 && Math.random() < 0.08) {
                         boss.vy = boss.jumpForce;
@@ -628,7 +635,7 @@
             else if (boss.state === 'DODGING') {
                 boss.x += boss.vx;
                 boss.dodgeTimer--;
-                boss.vx *= 0.88; // friction
+                boss.vx *= 0.88; 
                 if (boss.dodgeTimer <= 0 || Math.abs(boss.vx) < 0.2) {
                     boss.vx = 0;
                     boss.state = 'IDLE';
@@ -645,6 +652,9 @@
                         
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
+                        
+                        // Trigger crowd cheers when boss lands a strike
+                        crowdCheerTimer = 90;
 
                         if (player.hp <= 0) {
                             handleDeath();
@@ -664,11 +674,39 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Background Atmospheric Details
-            ctx.fillStyle = '#171821';
-            ctx.fillRect(120, 100, 30, 190);
-            ctx.fillRect(450, 80, 35, 210);
-            
+            // --- COLOSSEUM ARENA BACKGROUND ---
+            // Amphitheater tiers / structural background arches
+            ctx.fillStyle = '#1c1821';
+            ctx.fillRect(0, 45, canvas.width, 45);
+            ctx.fillStyle = '#141118';
+            ctx.fillRect(0, 90, canvas.width, 35);
+
+            // Arches pillars details
+            ctx.strokeStyle = '#282230';
+            ctx.lineWidth = 3;
+            for (let px = 40; px < canvas.width; px += 80) {
+                ctx.strokeRect(px, 45, 40, 45);
+            }
+
+            // Spectators (Viewers in the stands)
+            const spectatorColors = ['#5c6370', '#e06c75', '#61afef', '#98c379', '#e5c07b', '#4b5263'];
+            let jumpOffset = (crowdCheerTimer > 0) ? Math.sin(Date.now() / 60) * 3 : 0;
+
+            for (let yPos = 55; yPos < 85; yPos += 15) {
+                for (let xPos = 15; xPos < canvas.width; xPos += 12) {
+                    let colorIndex = (xPos + yPos) % spectatorColors.length;
+                    ctx.fillStyle = spectatorColors[colorIndex];
+                    ctx.fillRect(xPos, yPos + jumpOffset, 6, 8);
+                }
+            }
+
+            // Cheering effects when crowd is hyped up
+            if (crowdCheerTimer > 0) {
+                ctx.fillStyle = 'rgba(224, 108, 117, 0.25)';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText("🎉 OOH! 👑", canvas.width / 2 - 35, 38 + Math.sin(Date.now() / 50) * 4);
+            }
+
             // --- DRAW 4-TIER PYRAMID PLATFORMS ---
             platforms.forEach(plat => {
                 ctx.fillStyle = '#21252b';
@@ -683,8 +721,8 @@
                 ctx.stroke();
             });
 
-            // Ground Floor
-            ctx.strokeStyle = '#3b4252';
+            // Ground Floor Arena Stone Rim
+            ctx.strokeStyle = '#4c566a';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(0, groundLevel);
