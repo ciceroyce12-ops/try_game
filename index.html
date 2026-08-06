@@ -162,7 +162,7 @@
         let gameState = 'PLAYING'; // PLAYING, WIN_PAUSE, DEATH, VICTORY
         const groundLevel = 290;
         
-        // 4-Tier Pyramid Platforms Setup (Ground + 3 tiered platforms)
+        // 4-Tier Pyramid Platforms Setup
         const platforms = [
             { x: 140, y: 230, width: 520, height: 12 }, // 2nd Floor
             { x: 260, y: 170, width: 280, height: 12 }, // 3rd Floor
@@ -177,7 +177,7 @@
             speed: 4.5,
             vy: 0,
             gravity: 0.55,
-            jumpForce: -9.2, // Adjusted so you can only jump 1 platform level at a time (~77px max height)
+            jumpForce: -9.2, // Strictly 1 level per jump (~77px max height)
             isGrounded: true,
             hp: 100,
             maxHp: 100,
@@ -208,7 +208,7 @@
             hasDealtDamage: false,
             vy: 0,
             gravity: 0.55,
-            jumpForce: -9.2, // Matches player jump limit
+            jumpForce: -9.2,
             isGrounded: true
         };
 
@@ -397,10 +397,10 @@
                 return;
             }
 
-            // Platforms collision (one-way: land from above when falling)
+            // Platforms collision (optimized to prevent jitter/stutter when resting)
             platforms.forEach(plat => {
                 if (entity.vy >= 0 && 
-                    feetPrev <= plat.y + 6 && 
+                    feetPrev <= plat.y && 
                     feetCurr >= plat.y && 
                     entity.x + entity.width > plat.x && 
                     entity.x < plat.x + plat.width) {
@@ -488,7 +488,6 @@
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 
-                // Check if boss is currently standing on a platform while the player is below it
                 let currentPlat = platforms.find(plat => 
                     Math.abs((boss.y + boss.height) - plat.y) < 6 && 
                     boss.x + boss.width > plat.x && 
@@ -496,30 +495,27 @@
                 );
 
                 if (currentPlat && player.y > boss.y + 10) {
-                    // Boss is on a platform and player is below: force boss to walk towards the nearest edge to drop down
                     let distToLeftEdge = boss.x - currentPlat.x;
-                    let distToRightEdge = (currentPlat.x + plat.width) - (boss.x + boss.width);
+                    let distToRightEdge = (currentPlat.x + currentPlat.width) - (boss.x + boss.width);
                     let targetX;
 
                     if (player.x < currentPlat.x) {
                         targetX = currentPlat.x - 5;
-                    } else if (player.x > currentPlat.x + plat.width) {
-                        targetX = currentPlat.x + plat.width + 5;
+                    } else if (player.x > currentPlat.x + currentPlat.width) {
+                        targetX = currentPlat.x + currentPlat.width + 5;
                     } else {
-                        targetX = distToLeftEdge < distToRightEdge ? currentPlat.x - 5 : currentPlat.x + plat.width + 5;
+                        targetX = distToLeftEdge < distToRightEdge ? currentPlat.x - 5 : currentPlat.x + currentPlat.width + 5;
                     }
 
                     let diffToTarget = targetX - boss.x;
                     boss.x += Math.sign(diffToTarget) * moveSpeed;
                 } else {
-                    // Normal horizontal pursuit
                     let horizontalDiff = player.x - boss.x;
                     if (Math.abs(horizontalDiff) > 10) {
                         boss.x += Math.sign(horizontalDiff) * moveSpeed;
                     }
                 }
 
-                // Pyramid tier climb pursuit when player is higher up
                 let horizontalDiffForJump = player.x - boss.x;
                 if (player.y < boss.y && boss.isGrounded) {
                     platforms.forEach(plat => {
