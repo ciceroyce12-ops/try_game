@@ -301,6 +301,10 @@
                     color = '#8a6f52';
                     angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
                     speed = Math.random() * 2 + 0.5;
+                } else if (type === 'sweat') {
+                    color = '#61afef';
+                    angle = Math.PI / 2 + (Math.random() - 0.5) * 0.5;
+                    speed = Math.random() * 1.5 + 0.5;
                 }
                 particles.push({
                     x: x,
@@ -746,6 +750,8 @@
                 p.y += p.vy;
                 if (p.type === 'dust') {
                     p.vy += 0.04;
+                } else if (p.type === 'sweat') {
+                    p.vy += 0.1;
                 } else {
                     p.vy += 0.2; 
                 }
@@ -803,6 +809,11 @@
             if (!isMoving && player.stamina < player.maxStamina) {
                 player.stamina += 0.5; 
                 if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
+            }
+
+            // Spawn sweat particles when stamina is completely depleted
+            if (player.stamina <= 0 && Math.random() < 0.25) {
+                spawnParticles(player.x + player.width / 2, player.y + 12, 'sweat', 1);
             }
 
             if (player.comboTimer > 0) {
@@ -1096,17 +1107,25 @@
             ctx.rotate(player.rotation);
             ctx.translate(-(player.x + player.width / 2), -(player.y + player.height / 2));
 
+            let isExhausted = player.stamina <= 0;
             let pDrawX = player.x;
-            let pDrawY = player.y;
+            let pDrawY = player.y + (isExhausted ? 6 : 0); // Slump down slightly when exhausted
 
-            ctx.fillStyle = gameState === 'DEATH_ANIMATION' ? '#e06c75' : (player.stamina <= 0 ? '#d19a66' : (player.isAttacking ? '#d19a66' : '#e0d0c0'));
-            ctx.fillRect(pDrawX + 4, pDrawY + 14, 20, 22);
-            ctx.fillRect(pDrawX + 4, pDrawY + 2, 20, 14);
-            ctx.fillRect(pDrawX + 2, pDrawY - 6, 6, 10);
-            ctx.fillRect(pDrawX + 20, pDrawY - 6, 6, 10);
+            // Distinct exhaustion color (#6b7280 dull exhausted slate blue-grey)
+            ctx.fillStyle = gameState === 'DEATH_ANIMATION' ? '#e06c75' : (isExhausted ? '#6b7280' : (player.isAttacking ? '#d19a66' : '#e0d0c0'));
+            
+            // Torso (hunched forward / shorter when exhausted)
+            ctx.fillRect(pDrawX + 4, pDrawY + (isExhausted ? 18 : 14), 20, isExhausted ? 18 : 22);
+            
+            // Head (drooping lower when exhausted)
+            ctx.fillRect(pDrawX + (player.facing > 0 ? 6 : 2), pDrawY + (isExhausted ? 8 : 2), 20, 14);
+            
+            // Horns / Ears
+            ctx.fillRect(pDrawX + 2, pDrawY + (isExhausted ? 4 : -6), 6, 10);
+            ctx.fillRect(pDrawX + 20, pDrawY + (isExhausted ? 4 : -6), 6, 10);
 
             ctx.fillStyle = '#120d09';
-            ctx.fillRect(player.facing > 0 ? pDrawX + 13 : pDrawX + 7, pDrawY + 6, 6, 4);
+            ctx.fillRect(player.facing > 0 ? pDrawX + 13 : pDrawX + 7, pDrawY + (isExhausted ? 10 : 6), 6, 4);
 
             if (player.isAttacking) {
                 ctx.fillStyle = '#ffffff';
@@ -1163,7 +1182,7 @@
 
             ctx.fillStyle = '#21160f';
             ctx.fillRect(15, 28, 90, 6);
-            ctx.fillStyle = player.stamina <= 0 ? '#e06c75' : '#d4af37';
+            ctx.fillStyle = player.stamina <= 0 ? '#61afef' : '#d4af37';
             ctx.fillRect(15, 28, Math.min(90, (player.stamina / player.maxStamina) * 90), 6);
 
             ctx.fillStyle = '#21160f';
