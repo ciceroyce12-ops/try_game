@@ -617,7 +617,6 @@
                 player.dodgeTimer--;
                 if (player.dodgeTimer <= 0) player.isDodging = false;
             } else {
-                // Moving does NOT cost stamina, but if stamina is depleted (0), crawl speed applies
                 let currentSpeed = player.stamina <= 0 ? player.speed * 0.25 : player.speed;
 
                 if (keys.left) {
@@ -648,13 +647,26 @@
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 let horizontalDiff = player.x - boss.x;
 
-                // Boss pursuit fix: Directly pursue toward player from any direction (left or right)
-                if (Math.abs(horizontalDiff) > 5) {
-                    boss.x += Math.sign(horizontalDiff) * moveSpeed;
+                // Smart Pathing: Check if boss is on a platform above the player. If so, walk toward platform edge to drop down!
+                let currentPlat = platforms.find(plat => 
+                    Math.abs((boss.y + boss.height) - plat.y) < 6 && 
+                    boss.x + boss.width > plat.x && 
+                    boss.x < plat.x + plat.width
+                );
+
+                if (currentPlat && player.y > boss.y + boss.height + 15) {
+                    let platCenter = currentPlat.x + currentPlat.width / 2;
+                    let dir = player.x < platCenter ? -1 : 1;
+                    boss.x += dir * moveSpeed;
+                } else {
+                    // Standard horizontal pursuit from any direction
+                    if (Math.abs(horizontalDiff) > 5) {
+                        boss.x += Math.sign(horizontalDiff) * moveSpeed;
+                    }
                 }
 
                 if (player.y < boss.y - 20 && boss.isGrounded) {
-                    if (Math.abs(horizontalDiff) < 200 && Math.random() < 0.08) {
+                    if (Math.abs(horizontalDiff) < 250 && Math.random() < 0.1) {
                         boss.vy = boss.jumpForce;
                         boss.isGrounded = false;
                     }
