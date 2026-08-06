@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Bilingual Edition</title>
+    <title>Colosseum of Fools - Unique Boss Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -59,7 +59,6 @@
             display: block;
             border-radius: 6px;
         }
-        /* Overlay Screen */
         #overlay-screen {
             position: absolute;
             top: 0;
@@ -271,9 +270,9 @@
         const translations = {
             en: {
                 title: "Colosseum of Fools",
-                startDesc: "Enter the arena and survive the champion trials.",
+                startDesc: "Enter the arena and survive the 10 champion trials.",
                 startBtn: "START GAME",
-                winLegend: "YOU WIN - LEGEND",
+                winLegend: "YOU WIN - LEGEND OF THE COLOSSEUM",
                 credit: "made by Ciceroyce",
                 lblLvl: "Lvl",
                 lblWins: "Wins",
@@ -293,8 +292,6 @@
                 dodgeBtn: "DODGE",
                 hitBtn: "HIT",
                 hpText: "HP",
-                bossText: "BOSS",
-                bossP2: "BOSS P2",
                 chooseEnhancement: "Choose your enhancement:",
                 lvlBeaten: (lvl) => `Level ${lvl} Beaten!`,
                 tutorialQuotes: [
@@ -303,7 +300,7 @@
                     "💡 <b>Pro Tip:</b> Land 4 consecutive hits to fire a powerful ranged laser beam!",
                     "💡 <b>Pro Tip:</b> Watch your stamina bar! Empty stamina disables movement speed.",
                     "💡 <b>Pro Tip:</b> Use pyramid platforms to jump over aggressive charges.",
-                    "💡 <b>Pro Tip:</b> Want to get in touch or check my projects? Visit my <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Contact Page</a>!"
+                    "💡 <b>Pro Tip:</b> Check my projects on my <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Contact Page</a>!"
                 ],
                 mockDialogues: [
                     "🗣️ 'HA HA HA! PATHETIC WORM!'",
@@ -338,9 +335,9 @@
             },
             id: {
                 title: "Colosseum of Fools",
-                startDesc: "Masuki arena dan buktikan ketangguhan lu!",
+                startDesc: "Masuki arena dan bantai 10 champion arena!",
                 startBtn: "MAIN SEKARANG",
-                winLegend: "MENANG - STATUS: LEGEND!",
+                winLegend: "MENANG - STATUS: LEGEND ARENA!",
                 credit: "dibuat sama Ciceroyce",
                 lblLvl: "Lvl",
                 lblWins: "Menang",
@@ -360,8 +357,6 @@
                 dodgeBtn: "DODGE",
                 hitBtn: "HIT",
                 hpText: "HP",
-                bossText: "BOSS",
-                bossP2: "BOSS P2",
                 chooseEnhancement: "Pilih buff buat upgrade:",
                 lvlBeaten: (lvl) => `Level ${lvl} Clear!`,
                 tutorialQuotes: [
@@ -370,7 +365,7 @@
                     "💡 <b>Tips Pro:</b> Kumpulin 4 combo hits berturut-turut buat nembak laser jarak jauh yang sakit banget!",
                     "💡 <b>Tips Pro:</b> Perhatiin bar stamina! Kalau abis, karakter bakal lemes dan geraknya lambat.",
                     "💡 <b>Tips Pro:</b> Manfaatin platform di atas buat ngehindar dari serudukan boss yang brutal.",
-                    "💡 <b>Tips Pro:</b> Mau ngobrol atau cek project gue yang lain? Kunjungi <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Halaman Kontak</a> gue ya!"
+                    "💡 <b>Tips Pro:</b> Kunjungi <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Halaman Kontak</a> gue ya!"
                 ],
                 mockDialogues: [
                     "🗣️ 'HA HA HA! NOOB BANGET!'",
@@ -515,8 +510,8 @@
         };
 
         function updateBossSize() {
-            let baseW = 40;
-            let baseH = 55;
+            let baseW = 42;
+            let baseH = 58;
             let lvlFactor = Math.min(stats.level, 10) - 1;
             let scale = 1 + lvlFactor * 0.05; 
             boss.width = Math.round(baseW * scale);
@@ -592,7 +587,7 @@
 
         function triggerBossIntro() {
             gameState = 'BOSS_INTRO';
-            bossIntroTimer = 240; // Exactly 4 seconds at 60 FPS
+            bossIntroTimer = 240;
             boss.hp = boss.maxHp;
             boss.rotation = 0;
             boss.vx = 0;
@@ -625,7 +620,7 @@
                 boss.phase2Triggered = true;
                 boss.speedMultiplier *= 1.25; 
                 gameState = 'PHASE2_CUTSCENE';
-                cutsceneTimer = 120; // Exactly 2 seconds at 60 FPS
+                cutsceneTimer = 120;
             }
         }
 
@@ -860,23 +855,22 @@
 
         function updateBossIntroAnim(bIndex, p) {
             boss.hp = boss.maxHp;
-            // 10 Unique Introductions (4s Duration)
             switch(bIndex) {
-                case 0: // Valen - Sky Drop & Crater Impact
+                case 0: // Valen - Sky Drop & Impact
                     if (p < 0.6) {
                         boss.x = 650;
                         boss.y = -100 + (groundLevel - boss.height + 100) * (p / 0.6);
                     } else {
                         boss.x = 650;
                         boss.y = groundLevel - boss.height;
-                        if (bossIntroTimer === 96) { // Impact moment at p=0.6
+                        if (bossIntroTimer === 96) {
                             shakeTimer = 18;
                             spawnParticles(boss.x + boss.width/2, groundLevel, 'dust', 30);
                             spawnParticles(boss.x + boss.width/2, groundLevel, 'spark', 15);
                         }
                     }
                     break;
-                case 1: // Gideon - Whirlwind Spin Teleport
+                case 1: // Gideon - Whirlwind Spin
                     if (p < 0.5) {
                         boss.x = 400 + Math.sin(p * Math.PI * 6) * 150;
                         boss.y = groundLevel - boss.height;
@@ -888,7 +882,7 @@
                         boss.rotation = 0;
                     }
                     break;
-                case 2: // Korg - Earthshaking Stomp Roar
+                case 2: // Korg - Earthshaking Stomp
                     boss.x = 650;
                     boss.y = groundLevel - boss.height;
                     if (bossIntroTimer % 35 === 0) {
@@ -901,7 +895,7 @@
                     boss.y = groundLevel - boss.height;
                     if (Math.random() < 0.5) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'blood', 3);
                     break;
-                case 4: // Malakor - High Arc Somersault Leap
+                case 4: // Malakor - High Arc Somersault
                     if (p < 0.7) {
                         let pNorm = p / 0.7;
                         boss.x = 850 - pNorm * 200;
@@ -917,7 +911,7 @@
                         }
                     }
                     break;
-                case 5: // Drakul - Volcanic Eruption from Ground
+                case 5: // Drakul - Volcanic Eruption
                     if (p < 0.3) {
                         boss.x = 650;
                         boss.y = groundLevel + 100;
@@ -932,7 +926,7 @@
                         boss.y = groundLevel - boss.height;
                     }
                     break;
-                case 6: // Varis - Descending Gate Barrier
+                case 6: // Varis - Descending Gate
                     boss.x = 650;
                     boss.y = -80 + p * (groundLevel - boss.height + 80);
                     if (Math.random() < 0.7) spawnParticles(boss.x + boss.width/2, boss.y + boss.height/2, 'spark', 5);
@@ -959,6 +953,189 @@
             }
         }
 
+        // ==========================================
+        // CUSTOM UNIQUE CANVAS MODELS FOR ALL 10 BOSSES
+        // ==========================================
+        function drawUniqueBossModel(bIndex, x, y, w, h, state, hasP2) {
+            ctx.save();
+            let isCharging = state === 'CHARGING';
+            let isAttacking = state === 'ATTACKING';
+
+            switch(bIndex) {
+                case 0: // VALEN: Gladiator (Rust Armor, Red Crest Helmet, Shield, Gladius/Axe)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#544033';
+                    ctx.fillRect(x + w * 0.15, y + h * 0.25, w * 0.7, h * 0.75); // Body
+                    // Helmet & Crest
+                    ctx.fillStyle = '#b89768';
+                    ctx.fillRect(x + w * 0.25, y, w * 0.5, h * 0.25);
+                    ctx.fillStyle = '#be5046'; // Red Plume
+                    ctx.beginPath();
+                    ctx.moveTo(x + w * 0.2, y); ctx.lineTo(x + w * 0.8, y); ctx.lineTo(x + w * 0.5, y - 12);
+                    ctx.fill();
+                    // Shield
+                    ctx.fillStyle = '#8a6f52';
+                    ctx.fillRect(x - 8, y + h * 0.35, 12, h * 0.45);
+                    // Gladius Sword
+                    ctx.fillStyle = '#e0d0c0';
+                    ctx.fillRect(x + w, y + h * 0.25, 18, 6);
+                    if (hasP2) {
+                        ctx.fillRect(x + w, y + h * 0.45, 18, 6);
+                    }
+                    break;
+
+                case 1: // GIDEON: Jester (3-Point Bell Hat, Slender, Dual Curved Daggers)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#5c2c54';
+                    ctx.fillRect(x + w * 0.25, y + h * 0.3, w * 0.5, h * 0.7); // Slender Body
+                    // Jester Hat
+                    ctx.fillStyle = '#be5046';
+                    ctx.beginPath();
+                    ctx.moveTo(x, y + h * 0.3); ctx.lineTo(x + w * 0.5, y - 10); ctx.lineTo(x + w, y + h * 0.3);
+                    ctx.fill();
+                    // Bells
+                    ctx.fillStyle = '#d4af37';
+                    ctx.beginPath();
+                    ctx.arc(x, y + h * 0.3, 4, 0, Math.PI * 2);
+                    ctx.arc(x + w * 0.5, y - 10, 4, 0, Math.PI * 2);
+                    ctx.arc(x + w, y + h * 0.3, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Daggers
+                    ctx.fillStyle = '#98c379';
+                    ctx.fillRect(x - 10, y + h * 0.4, 12, 4);
+                    ctx.fillRect(x + w, y + h * 0.4, 12, 4);
+                    break;
+
+                case 2: // KORG: Pit-Beast (Hunched Quadrupedal Beast, Horns, Chains)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#334e54';
+                    ctx.fillRect(x, y + h * 0.2, w * 0.9, h * 0.8); // Hunched Body
+                    // Massive Back Spikes
+                    ctx.fillStyle = '#1c2c38';
+                    for(let i=0; i<3; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(x + i*12, y + h*0.2); ctx.lineTo(x + i*12 + 6, y - 6); ctx.lineTo(x + i*12 + 12, y + h*0.2);
+                        ctx.fill();
+                    }
+                    // Head Jaws
+                    ctx.fillStyle = '#e06c75';
+                    ctx.fillRect(x - 10, y + h * 0.3, 15, h * 0.3);
+                    // Chains
+                    ctx.strokeStyle = '#b89768';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(x + w*0.4, y + h*0.5, 12, 0, Math.PI); ctx.stroke();
+                    break;
+
+                case 3: // LADY ISOLDA: Executioner (Tall Hood, Long Cloak, Huge Scythe)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#1e140e';
+                    // Flowing Cloak
+                    ctx.beginPath();
+                    ctx.moveTo(x + w*0.5, y); ctx.lineTo(x - 10, y + h); ctx.lineTo(x + w + 10, y + h);
+                    ctx.fill();
+                    // Executioner Hood
+                    ctx.fillStyle = '#54333b';
+                    ctx.fillRect(x + w * 0.3, y, w * 0.4, h * 0.25);
+                    // Glowing Red Eye Slit
+                    ctx.fillStyle = '#e06c75';
+                    ctx.fillRect(x + w * 0.35, y + 8, w * 0.3, 3);
+                    // Huge Scythe
+                    ctx.strokeStyle = '#8a6f52';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(x + w + 5, y - 15); ctx.lineTo(x + w + 5, y + h); ctx.stroke();
+                    ctx.fillStyle = '#e0d0c0';
+                    ctx.beginPath(); ctx.moveTo(x + w + 5, y - 15); ctx.lineTo(x + w - 30, y - 5); ctx.lineTo(x + w + 5, y); ctx.fill();
+                    break;
+
+                case 4: // MALAKOR: One-Eyed Brute (Giant Shoulder Spike, Single Glowing Eye, Mace)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#4a5433';
+                    ctx.fillRect(x + w * 0.1, y + h * 0.2, w * 0.8, h * 0.8);
+                    // Giant Left Pauldron
+                    ctx.fillStyle = '#d4af37';
+                    ctx.fillRect(x - 8, y + h * 0.15, w * 0.4, h * 0.3);
+                    // ONE Giant Central Eye
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.1, 9, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#e06c75';
+                    ctx.beginPath(); ctx.arc(x + w * 0.5, y + h * 0.1, 4, 0, Math.PI * 2); ctx.fill();
+                    // Spiked Mace
+                    ctx.fillStyle = '#543d2b';
+                    ctx.fillRect(x + w, y + h * 0.3, 20, 8);
+                    break;
+
+                case 5: // DRAKUL: Ash-Crowned Brute (Volcanic Fiery Core, Crown of Fire, Lava Axe)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#2b140e';
+                    ctx.fillRect(x + w * 0.1, y + h * 0.2, w * 0.8, h * 0.8);
+                    // Lava Cracks
+                    ctx.fillStyle = '#ffe599';
+                    ctx.fillRect(x + w * 0.3, y + h * 0.35, w * 0.4, h * 0.4);
+                    // Crown of Fire
+                    ctx.fillStyle = '#d4af37';
+                    for(let i=0; i<4; i++) {
+                        ctx.fillRect(x + w*0.2 + i*8, y - 8, 4, 12);
+                    }
+                    // Double Battle Axe
+                    ctx.fillStyle = '#e06c75';
+                    ctx.fillRect(x + w, y + h * 0.1, 15, h * 0.6);
+                    break;
+
+                case 6: // VARIS: Warden (Heavy Knight Armor, Visor Helm, Tower Shield, Halberd)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#3d3d3d';
+                    ctx.fillRect(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.8);
+                    // Tower Shield
+                    ctx.fillStyle = '#b89768';
+                    ctx.fillRect(x - 12, y + h * 0.1, 16, h * 0.85);
+                    ctx.strokeStyle = '#d4af37'; ctx.strokeRect(x - 12, y + h * 0.1, 16, h * 0.85);
+                    // Visor Slit
+                    ctx.fillStyle = '#ffe599';
+                    ctx.fillRect(x + w * 0.35, y + h * 0.08, w * 0.3, 3);
+                    break;
+
+                case 7: // MORVATH: Sovereign (Floating Spectral Blades, Sharp Geometric Armor)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#2b3354';
+                    ctx.fillRect(x + w * 0.2, y + h * 0.15, w * 0.6, h * 0.7);
+                    // Floating Telekinetic Blades
+                    ctx.fillStyle = '#61afef';
+                    let floatOff = Math.sin(Date.now()/150) * 8;
+                    ctx.fillRect(x - 18, y + floatOff, 6, 25);
+                    ctx.fillRect(x + w + 12, y - floatOff, 6, 25);
+                    break;
+
+                case 8: // VALERIUS: Dread Monarch (Regal Royal Cape, Multi-Tier Gold Crown, Scepter)
+                    // Royal Cape
+                    ctx.fillStyle = '#be5046';
+                    ctx.fillRect(x - 8, y + h * 0.2, w + 16, h * 0.8);
+                    // Armor
+                    ctx.fillStyle = '#d4af37';
+                    ctx.fillRect(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.75);
+                    // Golden Crown
+                    ctx.beginPath();
+                    ctx.moveTo(x + w*0.1, y); ctx.lineTo(x + w*0.3, y + h*0.18);
+                    ctx.lineTo(x + w*0.5, y - 6); ctx.lineTo(x + w*0.7, y + h*0.18); ctx.lineTo(x + w*0.9, y);
+                    ctx.fill();
+                    // Scepter
+                    ctx.fillStyle = '#ffe599';
+                    ctx.fillRect(x + w + 4, y + h * 0.1, 6, h * 0.8);
+                    ctx.beginPath(); ctx.arc(x + w + 7, y + h * 0.1, 7, 0, Math.PI * 2); ctx.fill();
+                    break;
+
+                case 9: // MODRED: The First Fool (Shadow Phantom, Cyan Glowing Eyes, Twin Blades)
+                    ctx.fillStyle = isCharging ? '#e06c75' : '#120d09';
+                    ctx.fillRect(x + w * 0.1, y + h * 0.1, w * 0.8, h * 0.9);
+                    // Tattered Shadow Cloak Edge
+                    ctx.fillStyle = '#3d2b1f';
+                    for(let i=0; i<5; i++) {
+                        ctx.fillRect(x + i*8, y + h - 4, 6, 8);
+                    }
+                    // Cyan Phantom Eyes
+                    ctx.fillStyle = '#61afef';
+                    ctx.fillRect(x + w * 0.3, y + h * 0.2, 5, 4);
+                    ctx.fillRect(x + w * 0.6, y + h * 0.2, 5, 4);
+                    // Dual Phantom Blades
+                    ctx.fillStyle = '#61afef';
+                    ctx.fillRect(x - 10, y + h * 0.3, 12, 4);
+                    ctx.fillRect(x + w, y + h * 0.3, 12, 4);
+                    break;
+            }
+            ctx.restore();
+        }
+
         function update() {
             if (hitStopFrames > 0) {
                 hitStopFrames--;
@@ -979,7 +1156,7 @@
             if (gameState === 'BOSS_INTRO') {
                 bossIntroTimer--;
                 let bIndex = Math.min(stats.level - 1, 9);
-                let p = 1 - (bossIntroTimer / 240); // 0.0 to 1.0 over 4 seconds
+                let p = 1 - (bossIntroTimer / 240);
                 updateBossIntroAnim(bIndex, p);
 
                 if (bossIntroTimer <= 0) {
@@ -1040,7 +1217,6 @@
 
             if (gameState === 'PHASE2_CUTSCENE') {
                 cutsceneTimer--;
-                // Equip second weapon when it lands into boss's hands near the end of the 2-second cutscene
                 if (cutsceneTimer === 25) {
                     spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'spark', 15);
                     boss.hasSecondWeapon = true;
@@ -1387,51 +1563,27 @@
             }
             ctx.restore();
 
-            // Boss Render
+            // BOSS RENDER (WITH UNIQUE CANVAS MODELS)
             ctx.save();
             ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
             ctx.rotate(boss.rotation || 0);
             ctx.translate(-(boss.x + boss.width / 2), -(boss.y + boss.height / 2));
 
-            let bDrawX = boss.x;
-            let bDrawY = boss.y;
-            let bw = boss.width;
-            let bh = boss.height;
-
-            ctx.fillStyle = gameState === 'BOSS_DEATH_ANIMATION' ? '#e06c75' : (boss.state === 'CHARGING' ? '#e06c75' : (boss.state === 'ATTACKING' ? '#be5046' : (boss.hasSecondWeapon ? '#6b3a3a' : '#544033')));
-            ctx.fillRect(bDrawX + bw * 0.125, bDrawY + bh * 0.185, bw * 0.75, bh * 0.81);
-
-            ctx.fillStyle = '#b89768';
-            ctx.beginPath();
-            ctx.moveTo(bDrawX + bw * 0.125, bDrawY + bh * 0.185); ctx.lineTo(bDrawX, bDrawY); ctx.lineTo(bDrawX + bw * 0.25, bDrawY + bh * 0.185);
-            ctx.moveTo(bDrawX + bw * 0.875, bDrawY + bh * 0.185); ctx.lineTo(bDrawX + bw, bDrawY); ctx.lineTo(bDrawX + bw * 0.75, bDrawY + bh * 0.185);
-            ctx.fill();
-
-            ctx.fillStyle = boss.state === 'CHARGING' ? '#ffffff' : '#e06c75';
-            ctx.fillRect(bDrawX + bw * 0.3, bDrawY + bh * 0.3, bw * 0.16, bh * 0.06);
-            ctx.fillRect(bDrawX + bw * 0.54, bDrawY + bh * 0.3, bw * 0.16, bh * 0.06);
-
-            ctx.fillStyle = '#be5046';
-            ctx.fillRect(bDrawX - bw * 0.3, bDrawY + bh * 0.38, bw * 0.3, bh * 0.54);
-            if (boss.hasSecondWeapon) {
-                ctx.fillStyle = '#e06c75';
-                ctx.fillRect(bDrawX + bw, bDrawY + bh * 0.3, bw * 0.25, bh * 0.61);
-            }
+            let bIndex = Math.min(stats.level - 1, 9);
+            drawUniqueBossModel(bIndex, boss.x, boss.y, boss.width, boss.height, boss.state, boss.hasSecondWeapon);
             ctx.restore();
 
-            // 4-SECOND BOSS INTRO CUTSCENE OVERLAY
+            // 4-SECOND BOSS INTRO OVERLAY
             if (gameState === 'BOSS_INTRO') {
                 const t = translations[currentLang];
                 let bIndex = Math.min(stats.level - 1, 9);
                 let currentBossName = bossNames[bIndex];
                 let countdownSec = Math.ceil(bossIntroTimer / 60);
 
-                // Cinematic Letterbox Black Bars
                 ctx.fillStyle = 'rgba(10, 7, 5, 0.85)';
                 ctx.fillRect(0, 0, canvas.width, 42);
                 ctx.fillRect(0, canvas.height - 42, canvas.width, 42);
 
-                // Title Overlay Box
                 ctx.fillStyle = 'rgba(18, 13, 9, 0.85)';
                 ctx.fillRect(canvas.width / 2 - 240, canvas.height / 2 - 45, 480, 85);
                 ctx.strokeStyle = '#d4af37';
@@ -1453,14 +1605,13 @@
                 ctx.textAlign = 'left';
             }
 
-            // PHASE 2 CUTSCENE ANIMATION (2 Seconds Total / 120 Frames)
+            // PHASE 2 CUTSCENE ANIMATION
             if (gameState === 'PHASE2_CUTSCENE') {
                 ctx.fillStyle = 'rgba(18, 13, 9, 0.75)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Calculate parabolic throw progress (0 to 1 over 120 frames)
                 let p = 1 - (cutsceneTimer / 120);
-                let startX = 180; // Audience gallery source position
+                let startX = 180;
                 let startY = 80;
                 let targetX = boss.x + boss.width / 2;
                 let targetY = boss.y + boss.height / 2;
@@ -1468,7 +1619,6 @@
                 let flyX = startX + (targetX - startX) * p;
                 let flyY = startY + (targetY - startY) * p - Math.sin(p * Math.PI) * 90;
 
-                // Draw spinning weapon flying through the air from the audience
                 if (cutsceneTimer > 25) {
                     ctx.save();
                     ctx.translate(flyX, flyY);
@@ -1480,7 +1630,6 @@
                     ctx.restore();
                 }
 
-                // Title & Description Overlay
                 ctx.fillStyle = '#d4af37';
                 ctx.font = 'bold 16px sans-serif';
                 ctx.textAlign = 'center';
