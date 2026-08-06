@@ -68,7 +68,7 @@
 </head>
 <body>
 
-    <h1>TETRIS</h1>
+    <h1>TETRIS by @Ciceroyce</h1>
     <div id="score-board">Score: <span id="score">0</span></div>
     
     <canvas id="tetris" width="300" height="600"></canvas>
@@ -103,6 +103,9 @@
                 rowCount *= 2;
             }
             scoreElement.innerText = player.score;
+            
+            // Dynamic Speed Increase: Speeds up as score increases (caps at 100ms minimum)
+            dropInterval = Math.max(100, 1000 - Math.floor(player.score / 40) * 100);
         }
 
         function collide(arena, player) {
@@ -228,6 +231,7 @@
             if (collide(arena, player)) {
                 arena.forEach(row => row.fill(0));
                 player.score = 0;
+                dropInterval = 1000; // Reset speed on game over
                 scoreElement.innerText = player.score;
             }
         }
