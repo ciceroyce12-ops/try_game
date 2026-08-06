@@ -243,7 +243,7 @@
             attackCooldown: 0,
             state: 'IDLE', 
             telegraphTimer: 0,
-            calmTimer: 0,
+            dodgeTimer: 0,
             vx: 0,
             speedMultiplier: 1.0,
             hasDealtDamage: false,
@@ -328,6 +328,14 @@
                     if (boss.hp <= 0) {
                         handleWin();
                     }
+                }
+
+                // Boss reflexively attempts a slow dodge backward when player attacks
+                if (boss.state === 'IDLE' && Math.abs(boss.x - player.x) < 220) {
+                    boss.state = 'DODGING';
+                    let dodgeDir = boss.x >= player.x ? 1 : -1; // away from player
+                    boss.vx = dodgeDir * 3.2; // slow dodge speed
+                    boss.dodgeTimer = 30; // frames of backward evade
                 }
 
                 if (player.comboCount >= 4) {
@@ -565,33 +573,18 @@
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 
-                let currentPlat = platforms.find(plat => 
-                    Math.abs((boss.y + boss.height) - plat.y) < 6 && 
-                    boss.x + boss.width > plat.x && 
-                    boss.x < plat.x + plat.width
-                );
-
-                if (currentPlat && player.y > boss.y + 10) {
-                    let targetX = player.x < boss.x ? currentPlat.x - 5 : currentPlat.x + currentPlat.width + 5;
-                    let diffToTarget = targetX - boss.x;
-                    boss.x += Math.sign(diffToTarget) * moveSpeed;
-                } else {
-                    let horizontalDiff = player.x - boss.x;
-                    if (Math.abs(horizontalDiff) > 10) {
-                        boss.x += Math.sign(horizontalDiff) * moveSpeed;
-                    }
+                // Directly track player horizontally so the boss naturally walks off platforms to pursue on ground
+                let horizontalDiff = player.x - boss.x;
+                if (Math.abs(horizontalDiff) > 10) {
+                    boss.x += Math.sign(horizontalDiff) * moveSpeed;
                 }
 
-                let horizontalDiffForJump = player.x - boss.x;
-                if (player.y < boss.y && boss.isGrounded) {
-                    platforms.forEach(plat => {
-                        if (boss.x + boss.width > plat.x && boss.x < plat.x + plat.width && Math.abs(horizontalDiffForJump) < 180) {
-                            if (Math.random() < 0.09) {
-                                boss.vy = boss.jumpForce;
-                                boss.isGrounded = false;
-                            }
-                        }
-                    });
+                // Jump up if player is higher up
+                if (player.y < boss.y - 20 && boss.isGrounded) {
+                    if (Math.abs(horizontalDiff) < 200 && Math.random() < 0.08) {
+                        boss.vy = boss.jumpForce;
+                        boss.isGrounded = false;
+                    }
                 }
 
                 if (distanceToPlayer < 120 && verticalDistance < 65 && boss.attackCooldown > Math.max(40, 80 - stats.wins * 5)) {
@@ -608,6 +601,15 @@
                     boss.vx = (player.x > boss.x ? 1 : -1) * (11 * boss.speedMultiplier);
                 }
             } 
+            else if (boss.state === 'DODGING') {
+                boss.x += boss.vx;
+                boss.dodgeTimer--;
+                boss.vx *= 0.88; // friction
+                if (boss.dodgeTimer <= 0 || Math.abs(boss.vx) < 0.2) {
+                    boss.vx = 0;
+                    boss.state = 'IDLE';
+                }
+            }
             else if (boss.state === 'ATTACKING') {
                 boss.x += boss.vx;
                 if (player.x < boss.x + boss.width && player.x + player.width > boss.x &&
@@ -629,11 +631,10 @@
                     boss.vx *= 0.82;
                     if (Math.abs(boss.vx) < 0.5) {
                         boss.vx = 0;
-                        boss.state = 'CALM';
-                        boss.calmTimer = 60; 
+                        boss.state = 'IDLE';
                     }
                 }
-            } 
+            }
             else if (boss.state === 'CALM') {
                 boss.calmTimer--;
                 if (boss.calmTimer <= 0) {
@@ -720,10 +721,10 @@
                 ctx.fillStyle = '#e06c75'; 
             } else if (boss.state === 'ATTACKING') {
                 ctx.fillStyle = '#be5046';
-            } else if (boss.state === 'CALM') {
-                ctx.fillStyle = '#98c379'; 
+            } else if (boss.state === 'DODGING') {
+                ctx.fillStyle = '#e5c07b'; 
             } else {
-                ctx.fillStyle = '#4b5263'; 
+                ctx.fillStyle = '#4b5263'; // Normal boss grey color for IDLE and CALM (no green window)
             }
             ctx.fillRect(6, 12, 36, 53);
 
