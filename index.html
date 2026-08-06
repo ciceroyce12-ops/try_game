@@ -209,6 +209,10 @@
         let crowdTimer = 0;
         let activeCrowdText = "";
 
+        // Screen Shake State
+        let shakeTimer = 0;
+        let shakeIntensity = 8;
+
         // Expanded Random Dialogues (At least 8 each)
         const mockDialogues = [
             "🗣️ 'HA HA HA! PATHETIC WORM!'",
@@ -754,7 +758,8 @@
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
 
-                        // Trigger Random Audience Mocking Dialogue on Hit!
+                        // Trigger Screen Shake & Mocking Audience Dialogue on Hit!
+                        shakeTimer = 16;
                         activeCrowdText = mockDialogues[Math.floor(Math.random() * mockDialogues.length)];
                         crowdTimer = 140;
 
@@ -783,6 +788,15 @@
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            // Apply Screen Shake Offset
+            if (shakeTimer > 0) {
+                shakeTimer--;
+                let offsetX = (Math.random() - 0.5) * shakeIntensity;
+                let offsetY = (Math.random() - 0.5) * shakeIntensity;
+                ctx.translate(offsetX, offsetY);
+            }
 
             // --- BACKGROUND ---
             let bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -1046,6 +1060,8 @@
             ctx.fillRect(canvas.width - 180, 20, Math.max(0, (boss.hp / boss.maxHp) * 160), 12);
             ctx.fillStyle = '#fff';
             ctx.fillText(`BOSS HP ${boss.hasSecondWeapon ? '(P2)' : ''}`, canvas.width - 150, 30);
+
+            ctx.restore(); // Restore context after screen shake
         }
 
         function gameLoop() {
