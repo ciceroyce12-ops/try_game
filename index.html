@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Exhaustion & Laser Edition</title>
+    <title>Souls-Like Mini RPG - Smart Boss & Laser Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -75,7 +75,7 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death: Exhaustion Edition</h1>
+        <h1>Trial by Death: Tactical Edition</h1>
         <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
@@ -136,8 +136,9 @@
             hp: 300,
             maxHp: 300,
             attackCooldown: 0,
-            state: 'IDLE', 
+            state: 'IDLE', // IDLE (pursuing), CHARGING, ATTACKING, CALM
             telegraphTimer: 0,
+            calmTimer: 0,
             vx: 0,
             speedMultiplier: 1.0
         };
@@ -190,7 +191,7 @@
 
                 player.isAttacking = true;
                 player.attackTimer = 12;
-                player.stamina -= 15;
+                player.stamina -= 15; // Attack consumes stamina
 
                 // Combo Tracking
                 player.comboCount++;
@@ -209,7 +210,7 @@
                     }
                 }
 
-                // Shoot laser on 4th attack IF boss has been successfully defeated at least once
+                // Shoot laser from afar on 4th attack IF boss has been successfully defeated at least once
                 if (stats.wins > 0 && player.comboCount >= 4) {
                     lasers.push({
                         x: player.facing > 0 ? player.x + player.width : player.x - 20,
@@ -231,6 +232,7 @@
             boss.maxHp = 300 + (stats.wins * 120);
             boss.hp = boss.maxHp;
             boss.x = 650;
+            boss.state = 'IDLE';
             winDisplay.innerText = stats.wins;
             lvlDisplay.innerText = stats.level;
         }
@@ -242,6 +244,7 @@
             player.maxHp = player.hp;
             player.x = 100;
             boss.hp = boss.maxHp;
+            boss.state = 'IDLE';
             lvlDisplay.innerText = stats.level;
             deathDisplay.innerText = stats.deaths;
             player.comboCount = 0;
@@ -253,11 +256,11 @@
 
             // Stamina Consumption & Recovery Logic
             if (isMoving) {
-                player.stamina -= 0.45; // Drain stamina while moving
+                player.stamina -= 0.45; // Moving consumes stamina
                 if (player.stamina < 0) player.stamina = 0;
             } else {
                 if (player.stamina < player.maxStamina) {
-                    player.stamina += 0.9; // Recover stamina when standing still
+                    player.stamina += 0.9; 
                     if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
                 }
             }
@@ -271,7 +274,7 @@
                 }
             }
 
-            // Update Lasers
+            // Update Lasers (Ranged Capability)
             lasers.forEach((laser, index) => {
                 laser.x += laser.vx;
                 if (laser.x < boss.x + boss.width && laser.x + laser.width > boss.x &&
@@ -321,25 +324,33 @@
                 if (player.attackTimer <= 0) player.isAttacking = false;
             }
 
+            // --- REFINED BOSS AI ---
+            let distanceToPlayer = Math.abs(boss.x - player.x);
+
             if (boss.state === 'IDLE') {
                 boss.attackCooldown++;
                 let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
                 
-                if (boss.x > player.x + 70) boss.x -= moveSpeed;
-                else if (boss.x < player.x - 70) boss.x += moveSpeed;
+                // Pursue player if not close enough
+                if (boss.x > player.x + 60) boss.x -= moveSpeed;
+                else if (boss.x < player.x - 60) boss.x += moveSpeed;
 
-                if (boss.attackCooldown > Math.max(30, 70 - stats.wins * 5)) {
+                // Only start charging an attack if close enough to the player and cooldown is ready
+                if (distanceToPlayer < 120 && boss.attackCooldown > Math.max(40, 80 - stats.wins * 5)) {
                     boss.state = 'CHARGING';
-                    boss.telegraphTimer = Math.max(15, 30 - stats.wins * 2);
+                    boss.telegraphTimer = Math.max(20, 35 - stats.wins * 2);
                     boss.attackCooldown = 0;
                 }
-            } else if (boss.state === 'CHARGING') {
+            } 
+            else if (boss.state === 'CHARGING') {
+                // While charging/telegraphing, boss stands still or shifts slightly
                 boss.telegraphTimer--;
                 if (boss.telegraphTimer <= 0) {
                     boss.state = 'ATTACKING';
-                    boss.vx = (player.x > boss.x ? 1 : -1) * (10 * boss.speedMultiplier);
+                    boss.vx = (player.x > boss.x ? 1 : -1) * (11 * boss.speedMultiplier);
                 }
-            } else if (boss.state === 'ATTACKING') {
+            } 
+            else if (boss.state === 'ATTACKING') {
                 boss.x += boss.vx;
                 if (player.x < boss.x + boss.width && player.x + player.width > boss.x &&
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
@@ -352,8 +363,20 @@
                     }
                 }
                 if (Math.abs(boss.vx) > 0) {
-                    boss.vx *= 0.85;
-                    if (Math.abs(boss.vx) < 0.5) boss.state = 'IDLE';
+                    boss.vx *= 0.82;
+                    // Once attack momentum stops, enter CALM state for 1 second (60 frames)
+                    if (Math.abs(boss.vx) < 0.5) {
+                        boss.vx = 0;
+                        boss.state = 'CALM';
+                        boss.calmTimer = 60; // 1 second vulnerability window
+                    }
+                }
+            } 
+            else if (boss.state === 'CALM') {
+                // Boss is calm/resting after attacking, giving the player a clear window to hit it
+                boss.calmTimer--;
+                if (boss.calmTimer <= 0) {
+                    boss.state = 'IDLE';
                 }
             }
         }
@@ -392,9 +415,8 @@
                 ctx.fillRect(-6, 0, player.width, player.height);
             }
 
-            // Player color flashes red/orange if exhausted (stamina = 0)
             if (player.stamina <= 0) {
-                ctx.fillStyle = '#e06c75';
+                ctx.fillStyle = '#e06c75'; // Exhausted indicator
             } else {
                 ctx.fillStyle = player.isAttacking ? '#d19a66' : '#98c379';
             }
@@ -420,11 +442,13 @@
             ctx.translate(boss.x, boss.y);
 
             if (boss.state === 'CHARGING') {
-                ctx.fillStyle = '#e06c75'; 
+                ctx.fillStyle = '#e06c75'; // Danger Red Flash
             } else if (boss.state === 'ATTACKING') {
                 ctx.fillStyle = '#be5046';
+            } else if (boss.state === 'CALM') {
+                ctx.fillStyle = '#98c379'; // Greenish tint showing vulnerability/calm window
             } else {
-                ctx.fillStyle = '#4b5263'; 
+                ctx.fillStyle = '#4b5263'; // Normal Pursuing
             }
             ctx.fillRect(6, 12, 36, 53);
 
