@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Custom Sprites</title>
+    <title>Souls-Like Mini RPG - Laser & Extended Reach</title>
     <style>
         * {
             box-sizing: border-box;
@@ -75,8 +75,8 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death: Custom Sprites Edition</h1>
-        <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span></div>
+        <h1>Trial by Death: Laser Edition</h1>
+        <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
     <canvas id="gameCanvas" width="800" height="350"></canvas>
@@ -95,6 +95,7 @@
         const lvlDisplay = document.getElementById('lvl-display');
         const winDisplay = document.getElementById('win-display');
         const deathDisplay = document.getElementById('death-display');
+        const comboDisplay = document.getElementById('combo-display');
 
         let stats = {
             level: 1,
@@ -122,7 +123,9 @@
             dodgeTimer: 0,
             isAttacking: false,
             attackTimer: 0,
-            facing: 1
+            facing: 1,
+            comboCount: 0,
+            comboTimer: 0
         };
 
         const boss = {
@@ -139,6 +142,7 @@
             speedMultiplier: 1.0
         };
 
+        let lasers = [];
         let keys = { left: false, right: false };
 
         // Input Listeners (Keyboard)
@@ -188,7 +192,13 @@
                 player.attackTimer = 12;
                 player.stamina -= 15;
 
-                let hitBoxWidth = 50;
+                // Combo Tracking
+                player.comboCount++;
+                player.comboTimer = 90; // 1.5 second combo window
+                comboDisplay.innerText = player.comboCount;
+
+                // Check 50% Increased Reach Hitbox (75 width instead of 50)
+                let hitBoxWidth = 75;
                 let hitBoxX = player.facing > 0 ? player.x + player.width : player.x - hitBoxWidth;
                 
                 if (hitBoxX < boss.x + boss.width && hitBoxX + hitBoxWidth > boss.x &&
@@ -197,6 +207,19 @@
                     if (boss.hp <= 0) {
                         handleWin();
                     }
+                }
+
+                // Shoot laser on 4th attack IF boss has been successfully defeated at least once
+                if (stats.wins > 0 && player.comboCount >= 4) {
+                    lasers.push({
+                        x: player.facing > 0 ? player.x + player.width : player.x - 20,
+                        y: player.y + 14,
+                        vx: player.facing * 12,
+                        width: 35,
+                        height: 10
+                    });
+                    player.comboCount = 0;
+                    comboDisplay.innerText = player.comboCount;
                 }
             }
         }
@@ -221,12 +244,41 @@
             boss.hp = boss.maxHp;
             lvlDisplay.innerText = stats.level;
             deathDisplay.innerText = stats.deaths;
+            player.comboCount = 0;
+            comboDisplay.innerText = player.comboCount;
         }
 
         function update() {
             if (player.stamina < player.maxStamina) {
                 player.stamina += 0.85;
             }
+
+            // Combo decay timer
+            if (player.comboTimer > 0) {
+                player.comboTimer--;
+                if (player.comboTimer === 0) {
+                    player.comboCount = 0;
+                    comboDisplay.innerText = player.comboCount;
+                }
+            }
+
+            // Update Lasers
+            lasers.forEach((laser, index) => {
+                laser.x += laser.vx;
+                // Boss Collision with Laser
+                if (laser.x < boss.x + boss.width && laser.x + laser.width > boss.x &&
+                    laser.y < boss.y + boss.height && laser.y + laser.height > boss.y) {
+                    boss.hp -= (30 + stats.level * 5);
+                    lasers.splice(index, 1);
+                    if (boss.hp <= 0) {
+                        handleWin();
+                    }
+                }
+                // Out of bounds cleanup
+                if (laser.x < 0 || laser.x > canvas.width) {
+                    lasers.splice(index, 1);
+                }
+            });
 
             player.vy += player.gravity;
             player.y += player.vy;
@@ -293,7 +345,7 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Background Atmospheric Details (Ruins / Pillars)
+            // Background Atmospheric Details
             ctx.fillStyle = '#171821';
             ctx.fillRect(120, 100, 30, 190);
             ctx.fillRect(450, 80, 35, 210);
@@ -306,35 +358,39 @@
             ctx.lineTo(canvas.width, groundLevel);
             ctx.stroke();
 
+            // --- DRAW LASERS ---
+            ctx.fillStyle = '#61afef';
+            lasers.forEach(laser => {
+                ctx.fillRect(laser.x, laser.y, laser.width, laser.height);
+                ctx.fillStyle = 'rgba(97, 175, 239, 0.4)';
+                ctx.fillRect(laser.x - 2, laser.y - 2, laser.width + 4, laser.height + 4);
+                ctx.fillStyle = '#61afef';
+            });
+
             // --- DRAW CUSTOM PLAYER SPRITE ---
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            // If dodging, render glowing blue blur trail
             if (player.isDodging) {
                 ctx.fillStyle = 'rgba(97, 175, 239, 0.4)';
                 ctx.fillRect(-6, 0, player.width, player.height);
             }
 
-            // Body / Cloak
             ctx.fillStyle = player.isAttacking ? '#d19a66' : '#98c379';
             ctx.fillRect(4, 14, 20, 22);
-            // Helmet / Hood
             ctx.fillStyle = '#5c6370';
             ctx.fillRect(4, 2, 20, 14);
-            // Visor Glow
             ctx.fillStyle = '#61afef';
             let visorX = player.facing > 0 ? 14 : 6;
             ctx.fillRect(visorX, 6, 8, 3);
 
-            // Weapon / Sword
+            // Extended 50% Weapon Reach Slash FX
             if (player.isAttacking) {
                 ctx.fillStyle = '#ffffff';
-                let swordX = player.facing > 0 ? 24 : -18;
-                ctx.fillRect(swordX, 16, 22, 6);
-                // Slash Glow Aura
+                let swordX = player.facing > 0 ? 24 : -45;
+                ctx.fillRect(swordX, 16, 45, 6);
                 ctx.fillStyle = 'rgba(97, 175, 239, 0.6)';
-                ctx.fillRect(swordX - 4, 12, 30, 14);
+                ctx.fillRect(swordX - 4, 12, 53, 14);
             }
             ctx.restore();
 
@@ -342,36 +398,31 @@
             ctx.save();
             ctx.translate(boss.x, boss.y);
 
-            // Boss Armor Frame
             if (boss.state === 'CHARGING') {
-                ctx.fillStyle = '#e06c75'; // Danger Red Flash
+                ctx.fillStyle = '#e06c75'; 
             } else if (boss.state === 'ATTACKING') {
                 ctx.fillStyle = '#be5046';
             } else {
-                ctx.fillStyle = '#4b5263'; // Dark Iron Knight
+                ctx.fillStyle = '#4b5263'; 
             }
             ctx.fillRect(6, 12, 36, 53);
 
-            // Boss Horns / Spikes
             ctx.fillStyle = '#abb2bf';
             ctx.beginPath();
             ctx.moveTo(6, 12); ctx.lineTo(0, 0); ctx.lineTo(12, 12);
             ctx.moveTo(42, 12); ctx.lineTo(48, 0); ctx.lineTo(36, 12);
             ctx.fill();
 
-            // Boss Visor / Glowing Eyes
             ctx.fillStyle = boss.state === 'CHARGING' ? '#ffffff' : '#e06c75';
             ctx.fillRect(14, 20, 8, 4);
             ctx.fillRect(26, 20, 8, 4);
 
-            // Boss Greatsword
             ctx.fillStyle = '#21252b';
             ctx.fillRect(boss.x > player.x ? -14 : 42, 25, 14, 35);
 
             ctx.restore();
 
             // --- UI BARS ---
-            // Player HP
             ctx.fillStyle = '#21252b';
             ctx.fillRect(20, 20, 160, 12);
             ctx.fillStyle = '#98c379';
@@ -380,13 +431,11 @@
             ctx.font = '10px sans-serif';
             ctx.fillText(`HP: ${Math.max(0, Math.floor(player.hp))}`, 25, 30);
 
-            // Player Stamina
             ctx.fillStyle = '#21252b';
             ctx.fillRect(20, 36, 110, 8);
             ctx.fillStyle = '#e5c07b';
             ctx.fillRect(20, 36, (player.stamina / player.maxStamina) * 110, 8);
 
-            // Boss HP
             ctx.fillStyle = '#21252b';
             ctx.fillRect(canvas.width - 180, 20, 160, 12);
             ctx.fillStyle = '#e06c75';
