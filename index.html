@@ -265,6 +265,10 @@
         @media (min-width: 768px) and (orientation: landscape) {
             h1 { font-size: 1.2rem; }
             #stats { font-size: 0.85rem; }
+        }
+
+        /* Hide touch controls and show keyboard guide ONLY on actual desktop/mouse setups */
+        @media (min-width: 768px) and (orientation: landscape) and (hover: hover) and (pointer: fine) {
             .controls-wrapper { display: none; }
             .desktop-instructions { display: block; }
         }
