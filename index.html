@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Souls-Like Mini RPG - Laser & Extended Reach</title>
+    <title>Souls-Like Mini RPG - Exhaustion & Laser Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -75,7 +75,7 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death: Laser Edition</h1>
+        <h1>Trial by Death: Exhaustion Edition</h1>
         <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span> | Combo: <span id="combo-display">0</span>/4</div>
     </div>
     
@@ -197,7 +197,7 @@
                 player.comboTimer = 90; // 1.5 second combo window
                 comboDisplay.innerText = player.comboCount;
 
-                // Check 50% Increased Reach Hitbox (75 width instead of 50)
+                // Check 50% Increased Reach Hitbox (75 width)
                 let hitBoxWidth = 75;
                 let hitBoxX = player.facing > 0 ? player.x + player.width : player.x - hitBoxWidth;
                 
@@ -249,8 +249,17 @@
         }
 
         function update() {
-            if (player.stamina < player.maxStamina) {
-                player.stamina += 0.85;
+            let isMoving = (keys.left || keys.right) && !player.isDodging;
+
+            // Stamina Consumption & Recovery Logic
+            if (isMoving) {
+                player.stamina -= 0.45; // Drain stamina while moving
+                if (player.stamina < 0) player.stamina = 0;
+            } else {
+                if (player.stamina < player.maxStamina) {
+                    player.stamina += 0.9; // Recover stamina when standing still
+                    if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
+                }
             }
 
             // Combo decay timer
@@ -265,7 +274,6 @@
             // Update Lasers
             lasers.forEach((laser, index) => {
                 laser.x += laser.vx;
-                // Boss Collision with Laser
                 if (laser.x < boss.x + boss.width && laser.x + laser.width > boss.x &&
                     laser.y < boss.y + boss.height && laser.y + laser.height > boss.y) {
                     boss.hp -= (30 + stats.level * 5);
@@ -274,7 +282,6 @@
                         handleWin();
                     }
                 }
-                // Out of bounds cleanup
                 if (laser.x < 0 || laser.x > canvas.width) {
                     lasers.splice(index, 1);
                 }
@@ -288,13 +295,22 @@
                 player.isGrounded = true;
             }
 
+            // Movement & Exhaustion Speed Penalty (25% speed if stamina is 0)
             if (player.isDodging) {
                 player.x += player.facing * 8.5;
                 player.dodgeTimer--;
                 if (player.dodgeTimer <= 0) player.isDodging = false;
             } else {
-                if (keys.left) player.x -= player.speed;
-                if (keys.right) player.x += player.speed;
+                let currentSpeed = player.stamina <= 0 ? player.speed * 0.25 : player.speed;
+
+                if (keys.left) {
+                    player.x -= currentSpeed;
+                    player.facing = -1;
+                }
+                if (keys.right) {
+                    player.x += currentSpeed;
+                    player.facing = 1;
+                }
             }
 
             if (player.x < 15) player.x = 15;
@@ -376,7 +392,12 @@
                 ctx.fillRect(-6, 0, player.width, player.height);
             }
 
-            ctx.fillStyle = player.isAttacking ? '#d19a66' : '#98c379';
+            // Player color flashes red/orange if exhausted (stamina = 0)
+            if (player.stamina <= 0) {
+                ctx.fillStyle = '#e06c75';
+            } else {
+                ctx.fillStyle = player.isAttacking ? '#d19a66' : '#98c379';
+            }
             ctx.fillRect(4, 14, 20, 22);
             ctx.fillStyle = '#5c6370';
             ctx.fillRect(4, 2, 20, 14);
@@ -384,7 +405,7 @@
             let visorX = player.facing > 0 ? 14 : 6;
             ctx.fillRect(visorX, 6, 8, 3);
 
-            // Extended 50% Weapon Reach Slash FX
+            // Extended Weapon Reach Slash FX
             if (player.isAttacking) {
                 ctx.fillStyle = '#ffffff';
                 let swordX = player.facing > 0 ? 24 : -45;
@@ -433,7 +454,7 @@
 
             ctx.fillStyle = '#21252b';
             ctx.fillRect(20, 36, 110, 8);
-            ctx.fillStyle = '#e5c07b';
+            ctx.fillStyle = player.stamina <= 0 ? '#e06c75' : '#e5c07b';
             ctx.fillRect(20, 36, (player.stamina / player.maxStamina) * 110, 8);
 
             ctx.fillStyle = '#21252b';
