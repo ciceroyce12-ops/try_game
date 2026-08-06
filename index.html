@@ -794,7 +794,7 @@
             stats.level++;
             updateBossSize();
             boss.speedMultiplier = 1.0 + (stats.wins * 0.25);
-            boss.maxHp = 300 * Math.pow(1.20, stats.wins);
+            boss.maxHp = 300 * Math.pow(2, stats.wins);
             boss.hp = boss.maxHp;
             boss.x = 650;
             boss.vy = 0;
@@ -1443,7 +1443,7 @@
                         spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 'spark', 6);
 
                         let baseDmg = 100 / 5;
-                        let damageToPlayer = baseDmg * Math.pow(1.20, stats.wins);
+                        let damageToPlayer = baseDmg * Math.pow(2, stats.wins);
                         
                         player.hp -= damageToPlayer;
                         boss.hasDealtDamage = true; 
