@@ -278,6 +278,7 @@
         let winDelayTimer = 0;
         let cutsceneTimer = 0;
         let deathAnimTimer = 0;
+        let bossDeathAnimTimer = 0;
         
         let crowdTimer = 0;
         let activeCrowdText = "";
@@ -352,7 +353,7 @@
             "🗣️ 'I-I CANNOT BELIEVE MY EYES... HE WON?!'",
             "🗣️ 'THE KING IS DEAD! ALL HAIL THE CHAMPION!'",
             "🗣️ 'A GLORIOUS UPSET! INCREDIBLE!'",
-            "🗣️ 'WE EAT LIKE KINGS TONIGHT! WHAT A FIGHT!'"
+            "🗣️ 'WE EAT LIKE KINGS TONIGHT! WHAT AT FIGHT!'"
         ];
 
         const loseDialogues = [
@@ -431,7 +432,8 @@
             isGrounded: true,
             phase2Triggered: false,
             hasSecondWeapon: false,
-            comboCount: 0
+            comboCount: 0,
+            rotation: 0
         };
 
         let lasers = [];
@@ -514,7 +516,7 @@
         }
 
         function triggerAttack() {
-            if (player.stamina >= 20 && !player.isAttacking && !player.isDodging) {
+            if (player.stamina >= 20 && !player.isAttacking && !player.isDodging && gameState === 'PLAYING') {
                 player.facing = boss.x >= player.x ? 1 : -1;
 
                 player.isAttacking = true;
@@ -540,10 +542,13 @@
                     boss.hp -= meleeDmg;
                     checkBossPhase2();
                     if (boss.hp <= 0 && gameState === 'PLAYING') {
+                        gameState = 'BOSS_DEATH_ANIMATION';
+                        bossDeathAnimTimer = 150;
+                        boss.vy = -7;
+                        boss.vx = (Math.random() - 0.5) * 6;
+                        boss.rotation = 0;
                         activeCrowdText = winDialogues[Math.floor(Math.random() * winDialogues.length)];
                         crowdTimer = 160;
-                        gameState = 'WIN_DELAY';
-                        winDelayTimer = 120;
                     }
                 }
 
@@ -619,6 +624,7 @@
             boss.x = 650;
             boss.y = groundLevel - boss.height;
             boss.vy = 0;
+            boss.rotation = 0;
             boss.state = 'IDLE';
             boss.hasDealtDamage = false;
             boss.phase2Triggered = false;
@@ -662,7 +668,8 @@
                 "💡 **Pro Tip:** Time your dodge roll to phase through boss charges safely.",
                 "💡 **Pro Tip:** Land 4 consecutive hits to fire a powerful ranged laser beam!",
                 "💡 **Pro Tip:** Watch your stamina bar! Empty stamina disables movement speed.",
-                "💡 **Pro Tip:** Use pyramid platforms to jump over aggressive charges."
+                "💡 **Pro Tip:** Use pyramid platforms to jump over aggressive charges.",
+                "💡 **Pro Tip:** Want to get in touch or check my projects? Visit my <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #d4af37; text-decoration: underline;'>Contact Page</a>!"
             ];
 
             deathTutorialText.innerHTML = tutorialQuotes[Math.floor(Math.random() * tutorialQuotes.length)];
@@ -699,6 +706,7 @@
             boss.x = 650;
             boss.y = groundLevel - boss.height;
             boss.vy = 0;
+            boss.rotation = 0;
             boss.state = 'IDLE';
             boss.hasDealtDamage = false;
             boss.phase2Triggered = false;
@@ -762,6 +770,31 @@
                 }
             });
 
+            if (gameState === 'BOSS_DEATH_ANIMATION') {
+                bossDeathAnimTimer--;
+                boss.vy += boss.gravity;
+                boss.y += boss.vy;
+                boss.x += boss.vx;
+                boss.rotation += 0.12;
+
+                if (Math.random() < 0.6) {
+                    spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'blood', 4);
+                    spawnParticles(boss.x + boss.width / 2, boss.y + boss.height / 2, 'spark', 3);
+                }
+
+                if (boss.y >= groundLevel - boss.height) {
+                    boss.y = groundLevel - boss.height;
+                    boss.vy = 0;
+                    boss.vx *= 0.8;
+                }
+
+                if (bossDeathAnimTimer <= 0) {
+                    gameState = 'WIN_DELAY';
+                    winDelayTimer = 90;
+                }
+                return;
+            }
+
             if (gameState === 'DEATH_ANIMATION') {
                 deathAnimTimer--;
                 player.vy += player.gravity;
@@ -811,7 +844,6 @@
                 if (player.stamina > player.maxStamina) player.stamina = player.maxStamina;
             }
 
-            // Spawn sweat particles when stamina is completely depleted
             if (player.stamina <= 0 && Math.random() < 0.25) {
                 spawnParticles(player.x + player.width / 2, player.y + 12, 'sweat', 1);
             }
@@ -844,10 +876,13 @@
                     checkBossPhase2();
                     lasers.splice(index, 1);
                     if (boss.hp <= 0 && gameState === 'PLAYING') {
+                        gameState = 'BOSS_DEATH_ANIMATION';
+                        bossDeathAnimTimer = 150;
+                        boss.vy = -7;
+                        boss.vx = (Math.random() - 0.5) * 6;
+                        boss.rotation = 0;
                         activeCrowdText = winDialogues[Math.floor(Math.random() * winDialogues.length)];
                         crowdTimer = 160;
-                        gameState = 'WIN_DELAY';
-                        winDelayTimer = 120;
                     }
                 }
                 if (laser.x < 0 || laser.x > canvas.width) lasers.splice(index, 1);
@@ -1018,8 +1053,7 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Dynamic Audience Movement (Calm vs Excited)
-            let isExcited = (crowdTimer > 0) || (gameState === 'WIN_DELAY' || gameState === 'WIN_PAUSE' || gameState === 'VICTORY' || gameState === 'DEATH' || gameState === 'DEATH_ANIMATION');
+            let isExcited = (crowdTimer > 0) || (gameState === 'WIN_DELAY' || gameState === 'WIN_PAUSE' || gameState === 'VICTORY' || gameState === 'DEATH' || gameState === 'DEATH_ANIMATION' || gameState === 'BOSS_DEATH_ANIMATION');
             let bounceSpeed = isExcited ? 70 : 350; 
             let bounceAmplitude = isExcited ? 7 : 1.2; 
 
@@ -1102,6 +1136,7 @@
                 ctx.restore();
             });
 
+            // Player Render
             ctx.save();
             ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
             ctx.rotate(player.rotation);
@@ -1109,18 +1144,11 @@
 
             let isExhausted = player.stamina <= 0;
             let pDrawX = player.x;
-            let pDrawY = player.y + (isExhausted ? 6 : 0); // Slump down slightly when exhausted
+            let pDrawY = player.y + (isExhausted ? 6 : 0);
 
-            // Distinct exhaustion color (#6b7280 dull exhausted slate blue-grey)
             ctx.fillStyle = gameState === 'DEATH_ANIMATION' ? '#e06c75' : (isExhausted ? '#6b7280' : (player.isAttacking ? '#d19a66' : '#e0d0c0'));
-            
-            // Torso (hunched forward / shorter when exhausted)
             ctx.fillRect(pDrawX + 4, pDrawY + (isExhausted ? 18 : 14), 20, isExhausted ? 18 : 22);
-            
-            // Head (drooping lower when exhausted)
             ctx.fillRect(pDrawX + (player.facing > 0 ? 6 : 2), pDrawY + (isExhausted ? 8 : 2), 20, 14);
-            
-            // Horns / Ears
             ctx.fillRect(pDrawX + 2, pDrawY + (isExhausted ? 4 : -6), 6, 10);
             ctx.fillRect(pDrawX + 20, pDrawY + (isExhausted ? 4 : -6), 6, 10);
 
@@ -1134,27 +1162,33 @@
             }
             ctx.restore();
 
+            // Boss Render
             ctx.save();
-            ctx.translate(boss.x, boss.y);
-            ctx.fillStyle = gameState === 'DEATH_ANIMATION' ? '#d4af37' : (boss.state === 'CHARGING' ? '#e06c75' : (boss.state === 'ATTACKING' ? '#be5046' : (boss.hasSecondWeapon ? '#6b3a3a' : '#544033')));
-            ctx.fillRect(6, 12, 36, 53);
+            ctx.translate(boss.x + boss.width / 2, boss.y + boss.height / 2);
+            ctx.rotate(boss.rotation || 0);
+            ctx.translate(-(boss.x + boss.width / 2), -(boss.y + boss.height / 2));
+
+            let bDrawX = boss.x;
+            let bDrawY = boss.y;
+
+            ctx.fillStyle = gameState === 'BOSS_DEATH_ANIMATION' ? '#e06c75' : (boss.state === 'CHARGING' ? '#e06c75' : (boss.state === 'ATTACKING' ? '#be5046' : (boss.hasSecondWeapon ? '#6b3a3a' : '#544033')));
+            ctx.fillRect(bDrawX + 6, bDrawY + 12, 36, 53);
 
             ctx.fillStyle = '#b89768';
             ctx.beginPath();
-            ctx.moveTo(6, 12); ctx.lineTo(0, 0); ctx.lineTo(12, 12);
-            ctx.moveTo(42, 12); ctx.lineTo(48, 0); ctx.lineTo(36, 12);
+            ctx.moveTo(bDrawX + 6, bDrawY + 12); ctx.lineTo(bDrawX, bDrawY); ctx.lineTo(bDrawX + 12, bDrawY + 12);
+            ctx.moveTo(bDrawX + 42, bDrawY + 12); ctx.lineTo(bDrawX + 48, bDrawY); ctx.lineTo(bDrawX + 36, bDrawY + 12);
             ctx.fill();
 
             ctx.fillStyle = boss.state === 'CHARGING' ? '#ffffff' : '#e06c75';
-            ctx.fillRect(14, 20, 8, 4);
-            ctx.fillRect(26, 20, 8, 4);
+            ctx.fillRect(bDrawX + 14, bDrawY + 20, 8, 4);
+            ctx.fillRect(bDrawX + 26, bDrawY + 20, 8, 4);
 
-            // Both Boss Weapons Styled Red (#be5046 and #e06c75)
             ctx.fillStyle = '#be5046';
-            ctx.fillRect(boss.x > player.x ? -14 : 42, 25, 14, 35);
+            ctx.fillRect(boss.x > player.x ? bDrawX - 14 : bDrawX + 42, bDrawY + 25, 14, 35);
             if (boss.hasSecondWeapon) {
                 ctx.fillStyle = '#e06c75';
-                ctx.fillRect(boss.x > player.x ? 46 : -22, 20, 12, 40);
+                ctx.fillRect(boss.x > player.x ? bDrawX + 46 : bDrawX - 22, bDrawY + 20, 12, 40);
             }
             ctx.restore();
 
