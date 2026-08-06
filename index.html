@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elden Pixel: Expanded Souls RPG</title>
+    <title>Souls-Like Mini RPG - Fixed</title>
     <style>
         * {
             box-sizing: border-box;
             touch-action: manipulation;
         }
         body {
-            background-color: #0b0b0b;
+            background-color: #0d0d0d;
             color: #e0e0e0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -35,12 +35,12 @@
         #stats {
             font-size: 0.8rem;
             color: #aaa;
-            margin-top: 2px;
+            margin-top: 3px;
         }
         canvas {
             border: 3px solid #333;
-            background-color: #121212;
-            box-shadow: 0 0 30px rgba(217, 83, 79, 0.2);
+            background-color: #141414;
+            box-shadow: 0 0 25px rgba(217, 83, 79, 0.15);
             max-width: 98vw;
             height: auto;
         }
@@ -50,7 +50,7 @@
             gap: 6px;
             margin-top: 10px;
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             padding: 0 10px;
         }
         button {
@@ -67,7 +67,7 @@
         button:active {
             background-color: #444;
         }
-        .btn-jump { background-color: #4477aa; }
+        .btn-jump { background-color: #555533; }
         .btn-dodge { background-color: #335577; }
         .btn-attack { background-color: #773333; }
     </style>
@@ -75,12 +75,11 @@
 <body>
 
     <div class="header-container">
-        <h1>Trial by Death: Expanded Arena</h1>
-        <div id="stats">Level: <span id="lvl-display">1</span> | Boss Tier: <span id="tier-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span></div>
+        <h1>Trial by Death: Elden Pixel</h1>
+        <div id="stats">Level: <span id="lvl-display">1</span> | Wins: <span id="win-display">0</span> | Deaths: <span id="death-display">0</span></div>
     </div>
     
-    <!-- Bigger canvas arena -->
-    <canvas id="gameCanvas" width="800" height="380"></canvas>
+    <canvas id="gameCanvas" width="800" height="350"></canvas>
 
     <div class="controls">
         <button id="btn-left">←</button>
@@ -94,27 +93,25 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const lvlDisplay = document.getElementById('lvl-display');
-        const tierDisplay = document.getElementById('tier-display');
         const winDisplay = document.getElementById('win-display');
         const deathDisplay = document.getElementById('death-display');
 
-        const groundY = 320; // Floor position
-
         let stats = {
             level: 1,
-            bossTier: 1,
             wins: 0,
             deaths: 0
         };
 
+        const groundLevel = 290;
+
         const player = {
             x: 100,
-            y: 270,
-            width: 26,
-            height: 50,
+            y: groundLevel - 40,
+            width: 24,
+            height: 40,
             speed: 4.5,
             vy: 0,
-            gravity: 0.6,
+            gravity: 0.55,
             jumpForce: -11,
             isGrounded: true,
             hp: 100,
@@ -130,13 +127,13 @@
 
         const boss = {
             x: 650,
-            y: 250,
-            width: 48,
-            height: 70,
+            y: groundLevel - 60,
+            width: 40,
+            height: 60,
             hp: 300,
             maxHp: 300,
             attackCooldown: 0,
-            state: 'IDLE',
+            state: 'IDLE', 
             telegraphTimer: 0,
             vx: 0,
             speedMultiplier: 1.0
@@ -148,9 +145,9 @@
         window.addEventListener('keydown', e => {
             if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
             if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') triggerJump();
-            if (e.key === 'Shift' || e.key === 's') triggerDodge();
-            if (e.key === 'j' || e.key === 'Enter' || e.key === 'x') triggerAttack();
+            if (e.key === 'ArrowUp' || e.key === 'w') triggerJump();
+            if (e.key === ' ' || e.key === 'Shift') triggerDodge();
+            if (e.key === 'j' || e.key === 'Enter') triggerAttack();
         });
         window.addEventListener('keyup', e => {
             if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
@@ -167,30 +164,38 @@
         document.getElementById('btn-attack').addEventListener('click', triggerAttack);
 
         function triggerJump() {
-            if (player.isGrounded && !player.isDodging) {
+            // Jumping now consumes 10 stamina
+            if (player.isGrounded && !player.isDodging && player.stamina >= 10) {
                 player.vy = player.jumpForce;
                 player.isGrounded = false;
+                player.stamina -= 10;
             }
         }
 
         function triggerDodge() {
             if (player.stamina >= 25 && !player.isDodging) {
                 player.isDodging = true;
-                player.dodgeTimer = 18;
+                player.dodgeTimer = 18; 
                 player.stamina -= 25;
             }
         }
 
         function triggerAttack() {
             if (player.stamina >= 15 && !player.isAttacking && !player.isDodging) {
+                // Robust Auto-Aim: Instantly face the boss relative to player position
+                player.facing = boss.x >= player.x ? 1 : -1;
+
                 player.isAttacking = true;
                 player.attackTimer = 12;
                 player.stamina -= 15;
 
-                let hitBoxX = player.facing > 0 ? player.x + player.width : player.x - 35;
-                if (hitBoxX < boss.x + boss.width && hitBoxX + 35 > boss.x &&
+                // Generous Hitbox for Auto-Aim Strike
+                let hitBoxWidth = 45;
+                let hitBoxX = player.facing > 0 ? player.x + player.width : player.x - hitBoxWidth;
+                
+                if (hitBoxX < boss.x + boss.width && hitBoxX + hitBoxWidth > boss.x &&
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
-                    boss.hp -= (20 + stats.level * 4);
+                    boss.hp -= (15 + stats.level * 3);
                     if (boss.hp <= 0) {
                         handleWin();
                     }
@@ -200,64 +205,49 @@
 
         function handleWin() {
             stats.wins++;
-            stats.bossTier++;
-            // Boss gets stronger AND faster each time you win
+            stats.level++;
             boss.speedMultiplier += 0.25;
-            boss.maxHp = 300 + (stats.bossTier * 120);
+            boss.maxHp = 300 + (stats.wins * 120);
             boss.hp = boss.maxHp;
             boss.x = 650;
-            
-            // Full heal reward for winning
-            player.hp = player.maxHp;
-            
-            tierDisplay.innerText = stats.bossTier;
             winDisplay.innerText = stats.wins;
+            lvlDisplay.innerText = stats.level;
         }
 
         function handleDeath() {
             stats.deaths++;
-            stats.level++; 
-            player.hp = player.maxHp + (stats.level * 15);
+            stats.level++;
+            player.hp = player.maxHp + (stats.level * 10);
             player.maxHp = player.hp;
             player.x = 100;
-            
+            boss.hp = boss.maxHp;
             lvlDisplay.innerText = stats.level;
             deathDisplay.innerText = stats.deaths;
         }
 
         function update() {
-            // Stamina regen
             if (player.stamina < player.maxStamina) {
-                player.stamina += 0.9;
+                player.stamina += 0.85;
             }
 
-            // Gravity & Vertical Physics for Player
             player.vy += player.gravity;
             player.y += player.vy;
-            if (player.y >= groundY - player.height) {
-                player.y = groundY - player.height;
+            if (player.y >= groundLevel - player.height) {
+                player.y = groundLevel - player.height;
                 player.vy = 0;
                 player.isGrounded = true;
             }
 
-            // Player Horizontal Movement
             if (player.isDodging) {
-                player.x += player.facing * 9;
+                player.x += player.facing * 8.5;
                 player.dodgeTimer--;
                 if (player.dodgeTimer <= 0) player.isDodging = false;
             } else {
-                if (keys.left) {
-                    player.x -= player.speed;
-                    player.facing = -1;
-                }
-                if (keys.right) {
-                    player.x += player.speed;
-                    player.facing = 1;
-                }
+                if (keys.left) player.x -= player.speed;
+                if (keys.right) player.x += player.speed;
             }
 
-            // Arena Boundaries (Bigger width: 800)
-            if (player.x < 10) player.x = 10;
+            if (player.x < 15) player.x = 15;
             if (player.x > canvas.width - 40) player.x = canvas.width - 40;
 
             if (player.isAttacking) {
@@ -265,108 +255,93 @@
                 if (player.attackTimer <= 0) player.isAttacking = false;
             }
 
-            // Boss AI & Speed Scaling
-            let baseMoveSpeed = (1.5 + (stats.bossTier * 0.15)) * boss.speedMultiplier;
-
             if (boss.state === 'IDLE') {
                 boss.attackCooldown++;
-                if (boss.x > player.x + 70) boss.x -= baseMoveSpeed;
-                else if (boss.x < player.x - 70) boss.x += baseMoveSpeed;
+                let moveSpeed = (1.4 + (stats.level * 0.08)) * boss.speedMultiplier;
+                
+                if (boss.x > player.x + 70) boss.x -= moveSpeed;
+                else if (boss.x < player.x - 70) boss.x += moveSpeed;
 
-                let cooldownLimit = Math.max(30, 70 - (stats.bossTier * 5));
-                if (boss.attackCooldown > cooldownLimit) {
+                if (boss.attackCooldown > Math.max(30, 70 - stats.wins * 5)) {
                     boss.state = 'CHARGING';
-                    boss.telegraphTimer = Math.max(15, 30 - (stats.bossTier * 2)); // Faster telegraphs at higher tiers
+                    boss.telegraphTimer = Math.max(15, 30 - stats.wins * 2);
                     boss.attackCooldown = 0;
                 }
             } else if (boss.state === 'CHARGING') {
                 boss.telegraphTimer--;
                 if (boss.telegraphTimer <= 0) {
                     boss.state = 'ATTACKING';
-                    boss.vx = (player.x > boss.x ? 1 : -1) * (10 + stats.bossTier * 1.5); // Faster lunge speeds
+                    boss.vx = (player.x > boss.x ? 1 : -1) * (10 * boss.speedMultiplier);
                 }
             } else if (boss.state === 'ATTACKING') {
                 boss.x += boss.vx;
-                
-                // Hitbox detection (If player jumps high enough, they avoid the ground lunge entirely!)
-                let horizontalOverlap = player.x < boss.x + boss.width && player.x + player.width > boss.x;
-                let verticalOverlap = (player.y + player.height > boss.y) && (player.y < boss.y + boss.height);
-
-                if (horizontalOverlap && verticalOverlap) {
-                    if (!player.isDodging) {
-                        player.hp -= (45 + stats.bossTier * 8);
+                if (player.x < boss.x + boss.width && player.x + player.width > boss.x &&
+                    player.y < boss.y + boss.height && player.y + player.height > boss.y) {
+                    let isJumpingOver = player.y + player.height < boss.y + 20; 
+                    if (!player.isDodging && !isJumpingOver) {
+                        player.hp -= (45 + stats.level * 6);
                         if (player.hp <= 0) {
                             handleDeath();
                         }
                     }
                 }
-
                 if (Math.abs(boss.vx) > 0) {
                     boss.vx *= 0.85;
-                    if (Math.abs(boss.vx) < 0.6) boss.state = 'IDLE';
+                    if (Math.abs(boss.vx) < 0.5) boss.state = 'IDLE';
                 }
             }
-
-            // Keep boss in bounds
-            if (boss.x < 50) boss.x = 50;
-            if (boss.x > canvas.width - 60) boss.x = canvas.width - 60;
         }
 
         function draw() {
-            ctx.fillStyle = '#121212';
+            ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Ground Floor
             ctx.strokeStyle = '#444';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(0, groundY);
-            ctx.lineTo(canvas.width, groundY);
+            ctx.moveTo(0, groundLevel);
+            ctx.lineTo(canvas.width, groundLevel);
             ctx.stroke();
 
-            // Player Render
             ctx.fillStyle = player.isDodging ? '#5bc0de' : '#5cb85c';
             if (player.isAttacking) ctx.fillStyle = '#f0ad4e';
             ctx.fillRect(player.x, player.y, player.width, player.height);
 
-            // Sword Slash Effect
             if (player.isAttacking) {
                 ctx.fillStyle = '#fff';
-                let slashX = player.facing > 0 ? player.x + player.width : player.x - 25;
-                ctx.fillRect(slashX, player.y + 12, 25, 10);
+                let slashX = player.facing > 0 ? player.x + player.width : player.x - 30;
+                ctx.fillRect(slashX, player.y + 8, 30, 12);
             }
 
-            // Boss Render
             if (boss.state === 'CHARGING') {
-                ctx.fillStyle = '#d9534f';
+                ctx.fillStyle = '#d9534f'; 
             } else if (boss.state === 'ATTACKING') {
-                ctx.fillStyle = '#ff2222';
+                ctx.fillStyle = '#ff3333';
             } else {
                 ctx.fillStyle = '#a94442';
             }
             ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
 
-            // UI Overlays (Player HP & Stamina)
-            ctx.fillStyle = '#222';
-            ctx.fillRect(20, 20, 180, 14);
+            // UI Bars
+            ctx.fillStyle = '#333';
+            ctx.fillRect(20, 20, 160, 12);
             ctx.fillStyle = '#5cb85c';
-            ctx.fillRect(20, 20, Math.max(0, (player.hp / player.maxHp) * 180), 14);
+            ctx.fillRect(20, 20, Math.max(0, (player.hp / player.maxHp) * 160), 12);
             ctx.fillStyle = '#fff';
-            ctx.font = '11px sans-serif';
-            ctx.fillText(`HP: ${Math.max(0, Math.floor(player.hp))}`, 25, 31);
+            ctx.font = '10px sans-serif';
+            ctx.fillText(`HP: ${Math.max(0, Math.floor(player.hp))}`, 25, 30);
 
-            ctx.fillStyle = '#222';
-            ctx.fillRect(20, 38, 120, 9);
+            ctx.fillStyle = '#333';
+            ctx.fillRect(20, 36, 110, 8);
             ctx.fillStyle = '#f0ad4e';
-            ctx.fillRect(20, 38, (player.stamina / player.maxStamina) * 120, 9);
+            ctx.fillRect(20, 36, (player.stamina / player.maxStamina) * 110, 8);
 
-            // Boss HP Bar
-            ctx.fillStyle = '#222';
-            ctx.fillRect(canvas.width - 200, 20, 180, 14);
+            ctx.fillStyle = '#333';
+            ctx.fillRect(canvas.width - 180, 20, 160, 12);
             ctx.fillStyle = '#d9534f';
-            ctx.fillRect(canvas.width - 200, 20, Math.max(0, (boss.hp / boss.maxHp) * 180), 14);
+            ctx.fillRect(canvas.width - 180, 20, Math.max(0, (boss.hp / boss.maxHp) * 160), 12);
             ctx.fillStyle = '#fff';
-            ctx.fillText(`BOSS TIER ${stats.bossTier}`, canvas.width - 165, 31);
+            ctx.fillText(`BOSS HP (Tier ${stats.wins + 1})`, canvas.width - 150, 30);
         }
 
         function gameLoop() {
