@@ -98,6 +98,18 @@
             background-color: #61afef;
             color: #0b0b0e;
         }
+        #death-tutorial-text {
+            font-size: 0.9rem;
+            color: #abb2bf;
+            max-width: 450px;
+            line-height: 1.4;
+            margin: 0 0 20px 0;
+            display: none;
+            background: #16171d;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px dashed #383a42;
+        }
         #btn-restart {
             background-color: #e06c75;
             color: #0b0b0e;
@@ -153,6 +165,7 @@
                 <button class="btn-upgrade" id="btn-dmg-up">⚔️ UPGRADE DAMAGE (+50%)</button>
                 <button class="btn-upgrade" id="btn-hp-up">🛡️ UPGRADE HEALTH (+50 Max HP & Heal)</button>
             </div>
+            <div id="death-tutorial-text"></div>
             <button id="btn-restart">TRY AGAIN?</button>
             <p id="overlay-credit" style="display:none; margin-top: 15px;">made by Ciceroyce</p>
         </div>
@@ -177,6 +190,7 @@
         const overlayTitle = document.getElementById('overlay-title');
         const overlayCredit = document.getElementById('overlay-credit');
         const upgradeOptions = document.getElementById('upgrade-options');
+        const deathTutorialText = document.getElementById('death-tutorial-text');
         const btnRestart = document.getElementById('btn-restart');
 
         let stats = {
@@ -339,6 +353,7 @@
                 overlayTitle.innerText = "YOU WIN";
                 overlayTitle.style.color = "#98c379";
                 upgradeOptions.style.display = "none";
+                deathTutorialText.style.display = "none";
                 btnRestart.style.display = "none";
                 overlayCredit.style.display = "block";
                 overlayScreen.style.display = "flex";
@@ -349,6 +364,7 @@
             overlayTitle.innerText = `Level ${stats.wins} Beaten! Choose Upgrade:`;
             overlayTitle.style.color = "#98c379";
             upgradeOptions.style.display = "flex";
+            deathTutorialText.style.display = "none";
             btnRestart.style.display = "none";
             overlayCredit.style.display = "none";
             overlayScreen.style.display = "flex";
@@ -359,7 +375,7 @@
                 player.damageMultiplier += 0.5;
             } else if (type === 'health') {
                 player.maxHp += 50;
-                player.hp = player.maxHp; // Full heal on upgrade
+                player.hp = player.maxHp; 
             }
             resumeGame();
         }
@@ -368,7 +384,6 @@
             overlayScreen.style.display = "none";
             stats.level++;
             boss.speedMultiplier += 0.25;
-            // Boss Health doubles each level pass
             boss.maxHp = 300 * Math.pow(2, stats.wins);
             boss.hp = boss.maxHp;
             boss.x = 650;
@@ -377,7 +392,6 @@
             boss.state = 'IDLE';
             boss.hasDealtDamage = false;
             
-            // Player keeps upgraded maxHp but gets healed
             player.hp = player.maxHp;
             player.x = 100;
             player.y = groundLevel - player.height;
@@ -394,6 +408,21 @@
             overlayTitle.innerText = "YOU DIE";
             overlayTitle.style.color = "#e06c75";
             upgradeOptions.style.display = "none";
+
+            // Random Tutorial Quotes
+            const tutorialQuotes = [
+                "💡 **Tutorial Tip:** Keep moving! Standing still regenerates stamina quicker, but running helps you keep a safe distance from sudden boss dashes.",
+                "💡 **Tutorial Tip:** Time your dodge roll (Shift or DODGE button) correctly to phase through incoming boss charges without taking damage.",
+                "💡 **Tutorial Tip:** Land 4 consecutive attacks on the boss to automatically shoot a powerful ranged laser beam!",
+                "💡 **Tutorial Tip:** Watch your stamina bar! Running out completely makes you move very slowly and disables jumps and dodges.",
+                "💡 **Tutorial Tip:** Use the tiered pyramid platforms to jump over the boss when it corners you on the ground level.",
+                "💡 **Tutorial Tip:** Want to send bug reports, feedback, or connect with the creator? Check out Ciceroyce's contact page: <a href='https://ciceroyce12-ops.github.io/Contact_Me/' target='_blank' style='color: #61afef; text-decoration: underline;'>https://ciceroyce12-ops.github.io/Contact_Me/</a>"
+            ];
+
+            const randomQuote = tutorialQuotes[Math.floor(Math.random() * tutorialQuotes.length)];
+            deathTutorialText.innerHTML = randomQuote;
+            deathTutorialText.style.display = "block";
+
             btnRestart.style.display = "block";
             overlayCredit.style.display = "none";
             overlayScreen.style.display = "flex";
@@ -445,7 +474,7 @@
                 return;
             }
 
-            // Platforms collision (optimized to prevent jitter/stutter when resting)
+            // Platforms collision
             platforms.forEach(plat => {
                 if (entity.vy >= 0 && 
                     feetPrev <= plat.y && 
@@ -543,7 +572,6 @@
                 );
 
                 if (currentPlat && player.y > boss.y + 10) {
-                    // Smart Drop-Down: Walk toward whichever edge is on the same side as the player
                     let targetX = player.x < boss.x ? currentPlat.x - 5 : currentPlat.x + currentPlat.width + 5;
                     let diffToTarget = targetX - boss.x;
                     boss.x += Math.sign(diffToTarget) * moveSpeed;
@@ -586,7 +614,6 @@
                     player.y < boss.y + boss.height && player.y + player.height > boss.y) {
                     let isJumpingOver = player.y + player.height < boss.y + 25; 
                     if (!player.isDodging && !isJumpingOver && !boss.hasDealtDamage) {
-                        // Boss attack kills in 5 hits at Level 1 (20 dmg per hit), and doubles each level pass
                         let baseDmg = 100 / 5;
                         let damageToPlayer = baseDmg * Math.pow(2, stats.wins);
                         
